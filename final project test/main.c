@@ -238,7 +238,7 @@ int game_run() {
 			error = process_event();
 		}
 	}
-	return error;
+	return error; 
 }
 
 void game_destroy() {
