@@ -28,7 +28,7 @@ ALLEGRO_FONT *font = NULL;
 const char *title = "Final Project 108030001 108030027";
 const float FPS = 60;
 const int WIDTH = 880;
-const int HEIGHT = 881;
+const int HEIGHT = 880;
 typedef struct character
 {
 	int x;
@@ -57,6 +57,9 @@ void game_begin();
 int process_event();
 int game_run();
 void game_destroy();
+
+bool pnt_in_rect(int px, int py, int x, int y, int w, int h);
+int pnt_in_boundary(int px, int py);
 
 int main(int argc, char *argv[]) {
 	int msg = 0;
@@ -131,7 +134,7 @@ void game_begin() {
 	// Load and draw text
 	font = al_load_ttf_font("pirulen.ttf", 12, 0);
 	al_draw_text(font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 220, ALLEGRO_ALIGN_CENTRE, "Press 'Enter' to start");
-	al_draw_rectangle(WIDTH / 2 - 150, 510, WIDTH / 2 + 150, 550, al_map_rgb(255, 255, 255), 0);
+	al_draw_rectangle(WIDTH / 2 - 150, 645, WIDTH / 2 + 150, 685, al_map_rgb(255, 255, 255), 0);
 	al_flip_display();
 }
 
@@ -164,16 +167,20 @@ int process_event() {
 		{
 			// Control
 		case ALLEGRO_KEY_W:
-			character1.y -= 30;
+			if (pnt_in_boundary(character1.x, character1.y) != 1)
+				character1.y -= 25;
 			break;
 		case ALLEGRO_KEY_S:
-			character1.y += 30;
+			if (pnt_in_boundary(character1.x, character1.y) != 2)
+				character1.y += 25;
 			break;
 		case ALLEGRO_KEY_A:
-			character1.x -= 30;
+			if (pnt_in_boundary(character1.x, character1.y) != 3)
+				character1.x -= 25;
 			break;
 		case ALLEGRO_KEY_D:
-			character1.x += 30;
+			if (pnt_in_boundary(character1.x, character1.y) != 4)
+				character1.x += 25;
 			break;
 
 			// For Start Menu
@@ -182,6 +189,7 @@ int process_event() {
 			break;
 		}
 	}
+	//if (pnt_in_rect(character1.x, character1.y, 0, 0, 880, 880))
 
 	// Shutdown our program
 	else if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
@@ -250,4 +258,26 @@ void game_destroy() {
 	al_destroy_timer(timer2);
 	al_destroy_bitmap(image);
 	al_destroy_sample(song);
+}
+
+int pnt_in_boundary(int px, int py)
+{
+	if (py > HEIGHT)
+		return 1;
+	else if (py < 0)
+		return 2;
+	else if (px < 0)
+		return 3;
+	else if (px > WIDTH)
+		return 4;
+	else
+		return 0;
+}
+
+bool pnt_in_rect(int px, int py, int x, int y, int w, int h)
+{
+	if (px >= x && px <= x + w && py >= y && py <= y + h)
+		return true;
+	else
+		return false;
 }
