@@ -25,10 +25,10 @@ ALLEGRO_SAMPLE *song = NULL;
 ALLEGRO_FONT *font = NULL;
 
 //Custom Definition
-const char *title = "Final Project 10xxxxxxx";
+const char *title = "Final Project 108030001 108030027";
 const float FPS = 60;
-const int WIDTH = 400;
-const int HEIGHT = 600;
+const int WIDTH = 880;
+const int HEIGHT = 881;
 typedef struct character
 {
 	int x;
@@ -206,7 +206,8 @@ int game_run() {
 				character1.image_path = al_load_bitmap("tower.png");
 				character2.image_path = al_load_bitmap("teemo_left.png");
 				character3.image_path = al_load_bitmap("teemo_right.png");
-				background = al_load_bitmap("stage.jpg");
+				background = al_load_bitmap("map_village_test.png");//µù¸Ñ
+
 
 				//Initialize Timer
 				timer = al_create_timer(1.0 / 15.0);
