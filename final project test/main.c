@@ -24,6 +24,7 @@ ALLEGRO_TIMER *timer3 = NULL;
 ALLEGRO_SAMPLE *song = NULL;
 ALLEGRO_FONT *font = NULL;
 
+
 //Custom Definition
 const char *title = "Final Project 108030001 108030027";
 const float FPS = 60;
@@ -50,6 +51,8 @@ bool judge_next_window = false;
 bool ture = true; //true: appear, false: disappear
 bool next = false; //true: trigger
 bool dir = true; //true: left, false: right
+
+bool key_state[ALLEGRO_KEY_MAX];
 
 void show_err_msg(int msg);
 void game_init();
@@ -132,14 +135,14 @@ void game_begin() {
 	// Loop the song until the display closes
 	al_play_sample(song, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 	
-	//haven't solve the problem that change the title scene
+	//haven't solve the problem that change the background of title scene
 	//al_draw_bitmap(background, 0, 0, 0);
 	al_clear_to_color(al_map_rgb(100, 100, 100));
-	background = al_load_bitmap("title_scene.jpg");
+	//background = al_load_bitmap("title_scene.jpg");
 	
 	// Load and draw text
-	font = al_load_ttf_font("pirulen.ttf", 12, 0);
-	al_draw_text(font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 220, ALLEGRO_ALIGN_CENTRE, "Press 'Enter' to start");
+	font = al_load_ttf_font("NotoSansCJKtc-Medium.otf", 12, 0);
+	al_draw_text(font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE, "Press 'Enter' to start");
 	al_draw_rectangle(WIDTH / 2 - 150, 645, WIDTH / 2 + 150, 685, al_map_rgb(255, 255, 255), 0);
 
 	al_flip_display();
@@ -215,11 +218,34 @@ int process_event() {
 		}
 		//else if...
 	}
-	else if (window == 3 && character1.y == 800 && character1.x == WIDTH / 2 -25) {//from INN back to village
-		window = 2;
-		background = al_load_bitmap("map_village.png");
-		character1.x = 300;
-		character1.y = HEIGHT - 150 - 50;
+	else if (window == 3) {
+		if (character1.x == WIDTH / 2 - 25 && character1.y == 800) {//from INN back to village
+			window = 2;
+			background = al_load_bitmap("map_village.png");
+			character1.x = 300;
+			character1.y = HEIGHT - 150 - 50;
+		}
+
+		//還沒完成，二樓不得上去
+		else if ((character1.x == 300 + 9 * 25 || character1.x == 300 + 10 * 25) && character1.y == 800 - 24 * 25) {
+			al_draw_text(font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE, "請付費解鎖本遊戲DLC，以遊玩更多內容！\nPress 'Enter' to continue");
+			al_draw_rectangle(WIDTH / 2 - 150, 645, WIDTH / 2 + 150, 685, al_map_rgb(255, 255, 255), 0);
+			while (ALLEGRO_EVENT_KEY_UP == ALLEGRO_KEY_ENTER)
+			{
+			
+			
+					break;
+		
+			}
+			
+			
+			/*if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
+				// Event for keyboard key down.
+				game_log("Key with keycode %d down", event.keyboard.keycode);
+				key_state[event.keyboard.keycode] = true;
+
+			}*/
+		}
 	}
 	else if (window == 4 && character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
 		window = 2;
