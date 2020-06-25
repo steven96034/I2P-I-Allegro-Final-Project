@@ -167,20 +167,20 @@ int process_event() {
 		{
 			// Control
 		case ALLEGRO_KEY_W:
-			if (pnt_in_boundary(character1.x, character1.y) != 1)
-				character1.y -= 25;
+			if (character1.y > 0)
+				character1.y -= 25*2;
 			break;
 		case ALLEGRO_KEY_S:
-			if (pnt_in_boundary(character1.x, character1.y) != 2)
-				character1.y += 25;
+			if (character1.y < HEIGHT - 100)
+				character1.y += 25*2;
 			break;
 		case ALLEGRO_KEY_A:
-			if (pnt_in_boundary(character1.x, character1.y) != 3)
-				character1.x -= 25;
+			if (character1.x > 0)
+				character1.x -= 25*2;
 			break;
 		case ALLEGRO_KEY_D:
-			if (pnt_in_boundary(character1.x, character1.y) != 4)
-				character1.x += 25;
+			if (character1.x < WIDTH - 75)
+				character1.x += 25*2;
 			break;
 
 			// For Start Menu
@@ -260,19 +260,7 @@ void game_destroy() {
 	al_destroy_sample(song);
 }
 
-int pnt_in_boundary(int px, int py)
-{
-	if (py > HEIGHT)
-		return 1;
-	else if (py < 0)
-		return 2;
-	else if (px < 0)
-		return 3;
-	else if (px > WIDTH)
-		return 4;
-	else
-		return 0;
-}
+
 
 bool pnt_in_rect(int px, int py, int x, int y, int w, int h)
 {
