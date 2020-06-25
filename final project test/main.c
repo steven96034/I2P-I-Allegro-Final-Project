@@ -27,8 +27,8 @@ ALLEGRO_FONT *font = NULL;
 //Custom Definition
 const char *title = "Final Project 108030001 108030027";
 const float FPS = 60;
-const int WIDTH = 880;
-const int HEIGHT = 880;
+const int WIDTH = 900;
+const int HEIGHT = 900;
 typedef struct character
 {
 	int x;
@@ -168,19 +168,19 @@ int process_event() {
 			// Control
 		case ALLEGRO_KEY_W:
 			if (character1.y > 0)
-				character1.y -= 25*2;
+				character1.y -= 25;
 			break;
 		case ALLEGRO_KEY_S:
 			if (character1.y < HEIGHT - 100)
-				character1.y += 25*2;
+				character1.y += 25;
 			break;
 		case ALLEGRO_KEY_A:
 			if (character1.x > 0)
-				character1.x -= 25*2;
+				character1.x -= 25;
 			break;
 		case ALLEGRO_KEY_D:
 			if (character1.x < WIDTH - 75)
-				character1.x += 25*2;
+				character1.x += 25;
 			break;
 
 			// For Start Menu
@@ -207,14 +207,14 @@ int game_run() {
 			if (judge_next_window) {
 				window = 2;
 				// Setting Character
-				character1.x = WIDTH / 2;
-				character1.y = HEIGHT / 2 + 150;
+				character1.x = 300;
+				character1.y = HEIGHT - 150;
 				character2.x = WIDTH + 100;
 				character2.y = HEIGHT / 2 - 280;
 				character1.image_path = al_load_bitmap("tower.png");
 				character2.image_path = al_load_bitmap("teemo_left.png");
 				character3.image_path = al_load_bitmap("teemo_right.png");
-				background = al_load_bitmap("map_village_test.png");//µù¸Ñ
+				background = al_load_bitmap("map_village.png");//µù¸Ñ
 
 
 				//Initialize Timer
@@ -234,7 +234,7 @@ int game_run() {
 	else if (window == 2) {
 		// Change Image for animation
 		al_draw_bitmap(background, 0, 0, 0);
-		if (ture) al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+		if (1) al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 
 		if (dir) al_draw_bitmap(character2.image_path, character2.x, character2.y, 0);
 		else al_draw_bitmap(character3.image_path, character2.x, character2.y, 0);
