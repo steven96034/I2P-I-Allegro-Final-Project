@@ -58,8 +58,9 @@ int process_event();
 int game_run();
 void game_destroy();
 
+
 bool pnt_in_rect(int px, int py, int x, int y, int w, int h);
-int pnt_in_boundary(int px, int py);
+
 
 int main(int argc, char *argv[]) {
 	int msg = 0;
@@ -130,12 +131,19 @@ void game_begin() {
 	}
 	// Loop the song until the display closes
 	al_play_sample(song, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+	
+	//haven't solve the problem that change the title scene
+	//al_draw_bitmap(background, 0, 0, 0);
 	al_clear_to_color(al_map_rgb(100, 100, 100));
+	background = al_load_bitmap("title_scene.jpg");
+	
 	// Load and draw text
 	font = al_load_ttf_font("pirulen.ttf", 12, 0);
 	al_draw_text(font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 220, ALLEGRO_ALIGN_CENTRE, "Press 'Enter' to start");
 	al_draw_rectangle(WIDTH / 2 - 150, 645, WIDTH / 2 + 150, 685, al_map_rgb(255, 255, 255), 0);
+
 	al_flip_display();
+	
 }
 
 int process_event() {
@@ -189,13 +197,55 @@ int process_event() {
 			break;
 		}
 	}
-	//if (pnt_in_rect(character1.x, character1.y, 0, 0, 880, 880))
-
 	// Shutdown our program
 	else if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 		return GAME_TERMINATE;
+	if (window == 2) {//in the village
+		if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
+			window = 3;
+			background = al_load_bitmap("map_village_INN.png");
+			character1.x = WIDTH / 2 - 25;
+			character1.y = 800 - 25;
+		}
+		else if (character1.x == 300 - 200 && character1.y == HEIGHT - 150 - 75) {//walk into grocery store
+			window = 4;
+			background = al_load_bitmap("map_village_grocerystore.jpg");
+			character1.x = 675;
+			character1.y = 800 - 275;
+		}
+		//else if...
+	}
+	else if (window == 3 && character1.y == 800 && character1.x == WIDTH / 2 -25) {//from INN back to village
+		window = 2;
+		background = al_load_bitmap("map_village.png");
+		character1.x = 300;
+		character1.y = HEIGHT - 150 - 50;
+	}
+	else if (window == 4 && character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
+		window = 2;
+		background = al_load_bitmap("map_village.png");
+		character1.x = 300 - 200;
+		character1.y = HEIGHT - 150 - 50;
+	}
 
-	return 0;
+	/*else if (window == 5) {
+		background = al_load_bitmap("map_village_bar.png");
+
+	}
+	else if (window == 6) {
+		background = al_load_bitmap("map_village_defensewearstore.png");
+
+	}
+	else if (window == 7) {
+		background = al_load_bitmap("map_village_weaponstore.png");
+
+	}
+	else if (window == 8) {
+		background = al_load_bitmap("map_village_specialhouse.png");
+
+	}*/
+
+		return 0;
 }
 
 int game_run() {
@@ -216,7 +266,6 @@ int game_run() {
 				character3.image_path = al_load_bitmap("teemo_right.png");
 				background = al_load_bitmap("map_village.png");//µù¸Ñ
 
-
 				//Initialize Timer
 				timer = al_create_timer(1.0 / 15.0);
 				timer2 = al_create_timer(1.0);
@@ -231,13 +280,15 @@ int game_run() {
 		}
 	}
 	// Second window(Main Game)
-	else if (window == 2) {
+	else if (window != 1) {
 		// Change Image for animation
 		al_draw_bitmap(background, 0, 0, 0);
-		if (1) al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+		
+		//if (1)
+		al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 
-		if (dir) al_draw_bitmap(character2.image_path, character2.x, character2.y, 0);
-		else al_draw_bitmap(character3.image_path, character2.x, character2.y, 0);
+		//if (dir) al_draw_bitmap(character2.image_path, character2.x, character2.y, 0);
+		//else al_draw_bitmap(character3.image_path, character2.x, character2.y, 0);
 
 		al_flip_display();
 		al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -247,6 +298,8 @@ int game_run() {
 			error = process_event();
 		}
 	}
+
+	
 	return error; 
 }
 
