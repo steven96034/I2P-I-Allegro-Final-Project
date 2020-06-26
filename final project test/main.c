@@ -72,8 +72,10 @@ bool judge_next_window = false;
 bool ture = true; //true: appear, false: disappear
 bool next = false; //true: trigger
 bool dir = true; //true: left, false: right
-
 bool key_state[ALLEGRO_KEY_MAX];
+
+//bool key_state[ALLEGRO_KEY_MAX];
+void on_key_down(int keycode);
 
 void show_err_msg(int msg);
 void game_init();
@@ -84,7 +86,7 @@ void event_window();
 int game_run();
 void game_destroy();
 
-//bool pnt_in_rect(int px, int py, int x, int y, int w, int h);
+bool pnt_in_rect(int px, int py, int x, int y, int w, int h);
 
 
 
@@ -216,11 +218,27 @@ int process_event() {
 	}
 
 	// Keyboard
-	if (event.type == ALLEGRO_EVENT_KEY_UP)
-	{
-		switch (event.keyboard.keycode)
-		{
-			// Control
+	if (window != 1 && pop_up_window == false) {
+		if (event.type == ALLEGRO_EVENT_KEY_DOWN){
+		on_key_down(event.keyboard.keycode);
+		}
+	}
+	else if (pop_up_window == true) {
+		on_key_down(event.keyboard.keycode);
+	}
+	else if (window == 1) {
+		on_key_down(event.keyboard.keycode);
+	}
+	// Shutdown our program
+	else if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+		return GAME_TERMINATE;
+	event_window();
+	return 0;
+}
+
+void on_key_down(int keycode) {
+	if (window != 1 && pop_up_window == false) {
+		switch (keycode) {
 		case ALLEGRO_KEY_W:
 			if (character1.y > 0)
 				character1.y -= 25;
@@ -237,21 +255,22 @@ int process_event() {
 			if (character1.x < WIDTH - 75)
 				character1.x += 25;
 			break;
-
-			// For Start Menu
-		case ALLEGRO_KEY_ENTER:
+		}		
+	}
+	else if (window == 1) {
+		if (keycode == ALLEGRO_KEY_ENTER)
 			judge_next_window = true;
-			break;
+	}
+	else if (window == 3) {
+		if (keycode == ALLEGRO_KEY_ENTER) {
+			pop_up_window = false;
+			character1.y += 25;
 		}
 	}
-	// Shutdown our program
-	else if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-		return GAME_TERMINATE;
-	event_window();
-	return 0;
 }
 
 void event_window(){
+
 	if (window == 2) {//in the village
 		if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
 			window = 3;
@@ -285,21 +304,8 @@ void event_window(){
 			character1.y = HEIGHT - 150 - 50;
 		}
 
-		//還沒完成，二樓不得上去
-		else if (/*(character1.x == 300 + 9 * 25 || character1.x == 300 + 10 * 25) && */character1.y == 800 - 24 * 25) {
+		else if ((character1.x == 300 + 14 * 25 || character1.x == 300 + 15 * 25) && character1.y == 800 - 25 * 25) {//INN 2nd floor
 			pop_up_window = true;
-
-			/*if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
-				if ()
-			}*/
-	
-
-			/*if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
-				// Event for keyboard key down.
-				game_log("Key with keycode %d down", event.keyboard.keycode);
-				key_state[event.keyboard.keycode] = true;
-
-			}*/
 		}
 	}
 	else if (window == 4 && character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
@@ -351,7 +357,6 @@ int game_run() {
 				character1.image_path = al_load_bitmap("tower.png");
 				character2.image_path = al_load_bitmap("teemo_left.png");
 				character3.image_path = al_load_bitmap("teemo_right.png");
-				//village_bg;
 
 				//Initialize Timer
 				timer = al_create_timer(1.0 / 15.0);
@@ -367,6 +372,7 @@ int game_run() {
 		}
 	}
 	// Second window(Main Game)
+
 	else if (window > 1) {
 		// Change Image for animation
 		if (window == 2) {
@@ -374,16 +380,25 @@ int game_run() {
 		}
 		if (window == 3) {
 			al_draw_bitmap(INN_bg, 0, 0, 0);
-			if (pop_up_window == 1) {
+			while (pop_up_window == true) {
+				al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+					"If you want to play more, please pay for the DLC of this game!");
 				al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
-					"Please pay for DLC! Press 'Enter' to continue");
-				al_draw_rectangle(WIDTH / 2 - 150, 645, WIDTH / 2 + 150, 685, al_map_rgb(255, 255, 255), 0);
+					"Press ' Enter ' to continue!");
+				al_draw_rectangle(WIDTH / 2 - 300, HEIGHT / 2 + 140, WIDTH / 2 + 300, HEIGHT / 2 + 250, al_map_rgb(255, 255, 255), 0);
+				al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 				al_flip_display();
+				error = process_event();
+				if (pop_up_window == false) {
+					al_draw_bitmap(INN_bg, 0, 0, 0);
+					al_flip_display();
+
+					break;
+				}
 			}
 		}
 		if (window == 4)
 			al_draw_bitmap(grocerystore_bg, 0, 0, 0);
-		
 		//if (1)
 		al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 
@@ -398,9 +413,7 @@ int game_run() {
 			error = process_event();
 		}
 	}
-
-	
-	return error; 
+	return error;
 }
 
 void game_destroy() {
@@ -417,10 +430,10 @@ void game_destroy() {
 
 
 
-/*bool pnt_in_rect(int px, int py, int x, int y, int w, int h)
+bool pnt_in_rect(int px, int py, int x, int y, int w, int h)
 {
 	if (px >= x && px <= x + w && py >= y && py <= y + h)
 		return true;
 	else
 		return false;
-}*/
+}
