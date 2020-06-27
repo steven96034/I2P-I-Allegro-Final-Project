@@ -69,6 +69,7 @@ int done = 0;
 int window = 1;
 bool pop_up_window = false;
 bool judge_next_window = false;
+bool check_boundary(int x, int y);
 bool ture = true; //true: appear, false: disappear
 bool next = false; //true: trigger
 bool dir = true; //true: left, false: right
@@ -168,7 +169,7 @@ void load_data() {
 	grocerystore_bg = al_load_bitmap("map_village_grocerystore.jpg");
 
 	//font
-	menu_font = al_load_ttf_font("PAPYRUS.ttf", 20, 0);
+	menu_font = al_load_ttf_font("NotoSansCJKtc-Medium.otf", 20, 0);
 
 }
 
@@ -183,8 +184,8 @@ void game_begin() {
 	al_play_sample(menu_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 
 	//haven't solve the problem that change the background of title scene
-	//al_draw_bitmap(menu_bg, 0, 0, 0);
-	al_clear_to_color(al_map_rgb(100, 100, 100));
+	al_draw_bitmap(menu_bg, 0, 0, 0);
+	//al_clear_to_color(al_map_rgb(100, 100, 100));
 
 
 	// Load and draw text
@@ -240,20 +241,28 @@ void on_key_down(int keycode) {
 	if (window != 1 && pop_up_window == false) {
 		switch (keycode) {
 		case ALLEGRO_KEY_W:
-			if (character1.y > 0)
+			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
 				character1.y -= 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
 			break;
 		case ALLEGRO_KEY_S:
-			if (character1.y < HEIGHT - 100)
+			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
 				character1.y += 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
 			break;
 		case ALLEGRO_KEY_A:
-			if (character1.x > 0)
+			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
 				character1.x -= 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
 			break;
 		case ALLEGRO_KEY_D:
-			if (character1.x < WIDTH - 75)
+			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
 				character1.x += 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
 			break;
 		}		
 	}
@@ -281,6 +290,7 @@ void event_window(){
 				show_err_msg(4);
 			character1.x = WIDTH / 2 - 25;
 			character1.y = 800 - 25;
+			printf("In INN:\n");
 		}
 		else if (character1.x == 300 - 200 && character1.y == HEIGHT - 150 - 75) {//walk into grocery store
 			window = 4;
@@ -290,6 +300,7 @@ void event_window(){
 			al_play_sample(grocerystore_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &grocerystore_bgm_id);
 			character1.x = 675;
 			character1.y = 800 - 275;
+			printf("In grocery store:\n");
 		}
 		//else if...
 	}
@@ -302,11 +313,13 @@ void event_window(){
 			al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
 			character1.x = 300;
 			character1.y = HEIGHT - 150 - 50;
+			printf("In village:\n");
 		}
 
-		else if ((character1.x == 300 + 14 * 25 || character1.x == 300 + 15 * 25) && character1.y == 800 - 25 * 25) {//INN 2nd floor
+		else if ((character1.x == 650 || character1.x == 675) && character1.y == 175) //INN 2nd floor
 			pop_up_window = true;
-		}
+		else if (character1.x == 425 && character1.y == 175)//fire place
+			pop_up_window = true;
 	}
 	else if (window == 4 && character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
 		window = 2;
@@ -316,6 +329,7 @@ void event_window(){
 		al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
 		character1.x = 300 - 200;
 		character1.y = HEIGHT - 150 - 50;
+		printf("In village:\n");
 	}
 
 	/*else if (window == 5) {
@@ -381,24 +395,30 @@ int game_run() {
 		if (window == 3) {
 			al_draw_bitmap(INN_bg, 0, 0, 0);
 			while (pop_up_window == true) {
-				al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-					"If you want to play more, please pay for the DLC of this game!");
+				if ((character1.x == 650 || character1.x == 675) && character1.y == 175) {
+					al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+						"If you want to play more, please pay for the DLC of this game!");
+				}
+				else if (character1.x == 425 && character1.y == 175) {
+					al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+						"There's NOTHING in this fireplace ! WHY are you seeking something here?");
+				}
 				al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
 					"Press ' Enter ' to continue!");
-				al_draw_rectangle(WIDTH / 2 - 300, HEIGHT / 2 + 140, WIDTH / 2 + 300, HEIGHT / 2 + 250, al_map_rgb(255, 255, 255), 0);
+				al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 140, WIDTH / 2 + 350, HEIGHT / 2 + 250, al_map_rgb(255, 255, 255), 0);
 				al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 				al_flip_display();
 				error = process_event();
 				if (pop_up_window == false) {
 					al_draw_bitmap(INN_bg, 0, 0, 0);
 					al_flip_display();
-
 					break;
 				}
 			}
 		}
-		if (window == 4)
+		if (window == 4) {
 			al_draw_bitmap(grocerystore_bg, 0, 0, 0);
+		}
 		//if (1)
 		al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 
@@ -426,6 +446,147 @@ void game_destroy() {
 
 	//al_stop_sample(song);
 	//al_destroy_sample(song);
+}
+
+bool check_boundary(int x, int y) 
+{
+	if (window == 2) {
+		if (x == 100 && y == 675)
+			return true;
+		else if (x >= 100 && x <= 500 && y == 700)
+			return true;
+		else if (x == 500 && y >= 625 && y <= 675)
+			return true;
+		else if (x == 300 && y == 675)
+			return true;
+		else if (x == 175 && y >= 500 && y <= 675)
+			return true;
+		else if (x >= 50 && x <= 425 && y == 475)
+			return true;
+		else if (x == 375 && y == 450)
+			return true;
+		else if (x == 250 && y == 450)
+			return true;
+		else if (x >= 125 && x <= 150 && y >= 400 && y <= 450)
+			return true;
+		else if (x >= 150 && x <= 175 && y == 375)
+			return true;
+		else if (x == 100 && y == 400)
+			return true;
+		else if (x == 75 && y == 400)
+			return true;
+		else if (x == 75 && y == 425)
+			return true;
+		else if (x == 150 && y == 350)
+			return true;
+		else if (x == 425 && y >= 175 && y <= 675)
+			return true;
+		else if (x >= 175 && x <= 400 && y == 175)
+			return true;
+		else if (x >= 450 && x <= 700 && y == 400)
+			return true;
+		else if (x >= 725 && x <= 800 && y >= 375 && y <= 425)
+			return true;
+		else if (x >= 725 && x <= 750 && y == 450)
+			return true;
+		else if (x == 725 && y == 475)
+			return true;
+		else if (x == 700 && y >= 475 && y <= 625)
+			return true;
+		else if (x >= 725 && x <= 800 && y >= 600 && y <= 675)
+			return true;
+		else if (x == 800 && y >= 525 && y <= 575)
+			return true;
+		else if (x == 775 && y >= 550 && y <= 575)
+			return true;
+		else if (x == 800 && y >= 75 && y <= 350)
+			return true;
+		else if (x == 775 && y >= 100 && y <= 125)
+			return true;
+		else if (x >= 750 && x <= 775 && y >= 200 && y <= 300)
+			return true;
+		else if (x == 300 && y >= 725 && y <= 800)
+			return true;
+		else
+			return false;
+	}
+	if (window == 3) {
+		if (x == 700 && y >= 300 && y <= 600)
+			return true;
+		else if (x >= 650 && x <= 675 && y >= 175 && y <= 650)
+			return true;
+		else if (x >= 575 && x <= 625 && y >= 300 && y <= 650)
+			return true;
+		else if (x == 525 && y >= 375 && y <= 650)
+			return true;
+		else if (x >= 375 && x <= 475 && y >= 375 && y <= 650)
+			return true;
+		else if (x == 425 && y >= 675 && y <= 800)
+			return true;
+		else if (x >= 150 && x <= 350 && y >= 375 && y <= 575)
+			return true;
+		else if (x >= 150 && x <= 325 && y == 600)
+			return true;
+		else if (x >= 175 && x <= 325 && y >= 625 && y <= 650)
+			return true;
+		else if (x == 500 && x >= 375 && y <= 575)
+			return true;
+		else if (x == 550 && y >= 375 && y <= 650)
+			return true;
+		else if (x >= 175 && x <= 500 && y == 275)
+			return true;
+		else if (x >= 325 && x <= 500 && y >= 200 && y <= 275)
+			return true;
+		else if (x == 425 && y == 175)
+			return true;
+		else
+			return false;
+	}
+	else if (window == 4) {
+		if (x == 675 && y >= 425 && y <= 550)
+			return true;
+		else if (x >= 525 && x <= 825 && y >= 300 && y <= 400)
+			return true;
+		else if (x >= 350 && x <= 500 && y == 400)
+			return true;
+		else if (x == 325 && y == 400)
+			return true;
+		else if (x >= 325 && x <= 400 && y >= 425 && y <= 675)
+			return true;
+		else if (x >= 150 && x <= 300 && y == 675)
+			return true;
+		else if (x >= 150 && x <= 300 && y == 450)
+			return true;
+		else if (x >= 50 && x <= 125 && y >= 200 && y <= 675)
+			return true;
+		else if (x >= 150 && x <= 550 && y >= 200 && y <= 250)
+			return true;
+		else if (x == 325 && y >= 275 && y <= 350)
+			return true;
+		else if (x >= 450 && x <= 550 && y >= 150 && y <= 175)
+			return true;
+		else if (x >= 575 && x <= 700 && y == 150)
+			return true;
+		else if (x >= 700 && x <= 825 && y == 200)
+			return true;
+		else if (x == 700 && y == 175)
+			return true;
+		else if (x == 800 && y == 175)
+			return true;
+		else if (x == 825 && y == 175)
+			return true;
+		else if (x >= 150 && x <= 300 && y == 475)
+			return true;
+		else if (x == 525 && y == 275)
+			return true;
+		else if (x == 550 && y == 275)
+			return true;
+		else
+			return false;
+	}
+
+	else
+		return true;
 }
 
 
