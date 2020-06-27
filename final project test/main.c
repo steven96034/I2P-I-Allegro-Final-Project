@@ -67,6 +67,8 @@ int imageHeight = 0;
 int draw = 0;
 int done = 0;
 int window = 1;
+int message_number = 0;
+
 bool pop_up_window = false;
 bool judge_next_window = false;
 bool check_boundary(int x, int y);
@@ -75,7 +77,7 @@ bool next = false; //true: trigger
 bool dir = true; //true: left, false: right
 bool key_state[ALLEGRO_KEY_MAX];
 
-//bool key_state[ALLEGRO_KEY_MAX];
+
 void on_key_down(int keycode);
 
 void show_err_msg(int msg);
@@ -217,11 +219,11 @@ int process_event() {
 		if (next) next = false;
 		else ture = true;
 	}
-
+	on_key_down(event.keyboard.keycode);
 	// Keyboard
-	if (window != 1 && pop_up_window == false) {
+	/*if (window != 1 && pop_up_window == false) {
 		if (event.type == ALLEGRO_EVENT_KEY_DOWN){
-		on_key_down(event.keyboard.keycode);
+		
 		}
 	}
 	else if (pop_up_window == true) {
@@ -229,9 +231,9 @@ int process_event() {
 	}
 	else if (window == 1) {
 		on_key_down(event.keyboard.keycode);
-	}
+	}*/
 	// Shutdown our program
-	else if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+	if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 		return GAME_TERMINATE;
 	event_window();
 	return 0;
@@ -270,9 +272,38 @@ void on_key_down(int keycode) {
 		if (keycode == ALLEGRO_KEY_ENTER)
 			judge_next_window = true;
 	}
-	else if (window == 3) {
+	else if (window == 3 && character1.y == 175) {
 		if (keycode == ALLEGRO_KEY_ENTER) {
 			pop_up_window = false;
+			character1.y += 25;
+		}
+	}
+	else if (window == 3 && character1.x == 525 && character1.y == 375) {
+		if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
+			message_number++;
+		else if (message_number == 1) {
+			if (keycode == ALLEGRO_KEY_Z) {
+				message_number += 1;
+				printf("heal~~~~~~\n");
+				//heal and reduce money!!
+			}
+			else if (keycode == ALLEGRO_KEY_X) {
+				message_number += 2;
+				printf("no~~~~~\n");
+			}
+		}
+		else if (message_number == 2 && keycode == ALLEGRO_KEY_ENTER) {
+			message_number += 2;
+			printf("just before in yes scene~~~\n");
+		}
+		else if (message_number == 3 && keycode == ALLEGRO_KEY_ENTER) {
+			message_number += 1;
+			printf("just before in no scene~~~\n");
+		}
+		else if (message_number == 4 && keycode == ALLEGRO_KEY_ENTER) {
+			message_number = 0;
+			pop_up_window = false;
+			printf("final~~\n");
 			character1.y += 25;
 		}
 	}
@@ -319,6 +350,8 @@ void event_window(){
 		else if ((character1.x == 650 || character1.x == 675) && character1.y == 175) //INN 2nd floor
 			pop_up_window = true;
 		else if (character1.x == 425 && character1.y == 175)//fire place
+			pop_up_window = true;
+		else if (character1.x == 525 && character1.y == 375)//host
 			pop_up_window = true;
 	}
 	else if (window == 4 && character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
@@ -394,25 +427,89 @@ int game_run() {
 		}
 		if (window == 3) {
 			al_draw_bitmap(INN_bg, 0, 0, 0);
-			while (pop_up_window == true) {
-				if ((character1.x == 650 || character1.x == 675) && character1.y == 175) {
-					al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-						"If you want to play more, please pay for the DLC of this game!");
+			if (character1.x == 525 && character1.y == 375) {
+				while (pop_up_window == true) {
+					while (message_number == 0) {
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+							"Hotel Owner, Toriel:");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+							"Hello, do you wanna sleep with me...for days...?Oh...nothing...");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
+							"Do you want to rest here?");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
+							"Press ' Enter ' to continue!");
+						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 140, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 0);
+						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+						al_flip_display();
+						error = process_event();
+						//press enter to continue
+					}
+					while (message_number == 1) {
+						al_draw_bitmap(INN_bg, 0, 0, 0);
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+							"Hotel Owner, Toriel:");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+							"You only need to pay 81000 dollar for HEALing your life point.");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
+							"(press 'z' for YES and 'x' for NO)");
+						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 140, WIDTH / 2 + 350, HEIGHT / 2 + 250, al_map_rgb(255, 255, 255), 0);
+						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+						al_flip_display();
+						error = process_event();
+					}//press z for yes and x for no				
+					while (message_number == 2) {
+						//if (z) heal and reduce money    (remember to record)
+						al_draw_bitmap(INN_bg, 0, 0, 0);
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+							"Hotel Owner, Toriel:");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+							"Thank you for coming my hotel!Have a nice day!");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
+							"Press ' Enter ' to continue!");
+						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 140, WIDTH / 2 + 350, HEIGHT / 2 + 250, al_map_rgb(255, 255, 255), 0);
+						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+						al_flip_display();
+						error = process_event();
+					}					
+					while (message_number == 3) {//if (x) no heal
+						al_draw_bitmap(INN_bg, 0, 0, 0);
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+							"Hotel Owner, Toriel:");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+							"That's okay.Remember to come here for one day!");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
+							"Press ' Enter ' to continue!");
+						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 140, WIDTH / 2 + 350, HEIGHT / 2 + 250, al_map_rgb(255, 255, 255), 0);
+						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+						al_flip_display();
+						error = process_event();
+					}
+					while (message_number == 4)
+						error = process_event();
 				}
-				else if (character1.x == 425 && character1.y == 175) {
-					al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-						"There's NOTHING in this fireplace ! WHY are you seeking something here?");
-				}
-				al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
-					"Press ' Enter ' to continue!");
-				al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 140, WIDTH / 2 + 350, HEIGHT / 2 + 250, al_map_rgb(255, 255, 255), 0);
-				al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-				al_flip_display();
-				error = process_event();
-				if (pop_up_window == false) {
-					al_draw_bitmap(INN_bg, 0, 0, 0);
+			}
+			
+			if (character1.y == 175) {
+				while (pop_up_window == true) {
+					if ((character1.x == 650 || character1.x == 675) && character1.y == 175) {
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+							"If you want to play more, please pay for the DLC of this game!");
+					}
+					else if (character1.x == 425 && character1.y == 175) {
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+							"There's NOTHING in this fireplace ! WHY are you seeking something here?");
+					}
+					al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
+						"Press ' Enter ' to continue!");
+					al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 140, WIDTH / 2 + 350, HEIGHT / 2 + 250, al_map_rgb(255, 255, 255), 0);
+					al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 					al_flip_display();
-					break;
+					error = process_event();
+					if (pop_up_window == false) {
+						al_draw_bitmap(INN_bg, 0, 0, 0);
+						al_flip_display();
+						break;
+					}
 				}
 			}
 		}
@@ -584,7 +681,6 @@ bool check_boundary(int x, int y)
 		else
 			return false;
 	}
-
 	else
 		return true;
 }
