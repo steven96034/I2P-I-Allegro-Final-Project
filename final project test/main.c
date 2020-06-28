@@ -368,23 +368,28 @@ void on_key_down(int keycode) {
 			message_number = 5;
 			printf("just before in no scene~~~\n");
 		}
-		else if (message_number == 4 && keycode == ALLEGRO_KEY_ENTER) {
+		/*else if (message_number == 4 && keycode == ALLEGRO_KEY_ENTER) {
 			if (money_shortage == false) {
 				message_number = 2;
 			}
 			else
 				message_number = 5;
-		}
-		else if (message_number == 10) {
+		}*/
+		else if (message_number == 11) {
+			if (money >= 81000)
+				money -= 81000;
+			else
+				money -= 100;
+			hp_now = hp_max;
 			message_number = 2;
-			if (money_shortage == false) {
-				if (money >= 81000)
-					money -= 81000;
-				else
-					money -= 100;
-				hp_now = hp_max;
-			}
 		}
+		//else if (message_number == 12)
+		/*else if (message_number == 12 && keycode == ALLEGRO_KEY_ENTER) {
+			message_number = 0;
+			pop_up_window = false;
+			printf("final~~12~~\n");
+			character1.y += 25;
+		}*/
 		else if (message_number == 5 && keycode == ALLEGRO_KEY_ENTER) {
 			message_number = 0;
 			pop_up_window = false;
@@ -657,6 +662,7 @@ int game_run() {
 							"Press ' Enter ' to continue!");
 						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 						al_flip_display();
+						message_number = 5;
 						error = process_event();
 					}					
 					while (message_number == 3) {//if (x) no heal
@@ -677,31 +683,49 @@ int game_run() {
 						al_flip_display();
 						error = process_event();
 					}
-					while (message_number == 4) {
-						if (money >= 100) {
-							message_number = 10;
-						}
-						else {
-							al_draw_bitmap(INN_bg, 0, 0, 0);
-							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-							money_shortage = true;
-							al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-							al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-								"You don't have enough money to rest!Get out of here!");
-						}
-						error = process_event();
-					}
+
 					while (message_number == 10) {
 						message_number = 2;
 					}
-					while (message_number == 5)
-						error = process_event();
 					
+					while (message_number == 4) {
+						if (money >= 100) {
+							message_number = 11;
+							error = process_event();
+						}
+						else {
+							message_number = 12;
+						}
+
+					}	
+					while (message_number == 12) {
+						al_draw_bitmap(INN_bg, 0, 0, 0);
+						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+						al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
+						money_shortage = true;
+						al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+						al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
+							"Your HP now %d/%d.", hp_now, hp_max);
+						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
+							"You have %d.", money);
+						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+							"Hotel Owner, Toriel:");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+							"You only need to pay $81000 for HEALing your HP.Or...for only $100.");
+						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
+							"(press 'z' for YES and 'x' for NO)");
+						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+							"You don't have enough money to rest!Get out of here!");
+
+						al_flip_display();
+						message_number = 5;
+						error = process_event();
+					}
+					while (message_number == 5)
+						error = process_event();					
 				}
-			}
-			
+			}		
 			else if (character1.y == 175) {
 				while (pop_up_window == true) {
 					al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
