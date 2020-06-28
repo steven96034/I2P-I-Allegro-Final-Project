@@ -240,8 +240,9 @@ void game_begin() {
 	al_draw_bitmap(title_bg, 0, 0, 0);
 	//al_clear_to_color(al_map_rgb(100, 100, 100));
 
-
 	// Load and draw text
+	al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 - 300, ALLEGRO_ALIGN_CENTRE,
+		"UNTITLED");
 
 	al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 200, ALLEGRO_ALIGN_CENTRE,
 		"Press  'Enter'  to start");
@@ -272,17 +273,7 @@ int process_event() {
 	}
 	on_key_down(event.keyboard.keycode);
 	// Keyboard
-	/*if (window != 1 && pop_up_window == false) {
-		if (event.type == ALLEGRO_EVENT_KEY_DOWN){
-		
-		}
-	}
-	else if (pop_up_window == true) {
-		on_key_down(event.keyboard.keycode);
-	}
-	else if (window == 1) {
-		on_key_down(event.keyboard.keycode);
-	}*/
+
 	// Shutdown our program
 	if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 		return GAME_TERMINATE;
@@ -299,24 +290,48 @@ void on_key_down(int keycode) {
 				printf("(%d,%d)\n", character1.x, character1.y);
 			}
 			break;
+		/*case ALLEGRO_KEY_UP:
+			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
+				character1.y -= 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;*/
 		case ALLEGRO_KEY_S:
 			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
 				character1.y += 25;
 				printf("(%d,%d)\n", character1.x, character1.y);
 			}
 			break;
+		/*case ALLEGRO_KEY_DOWN:
+			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
+				character1.y += 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;*/
 		case ALLEGRO_KEY_A:
 			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
 				character1.x -= 25;
 				printf("(%d,%d)\n", character1.x, character1.y);
 			}
 			break;
+		/*case ALLEGRO_KEY_LEFT:
+			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
+				character1.x -= 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;*/
 		case ALLEGRO_KEY_D:
 			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
 				character1.x += 25;
 				printf("(%d,%d)\n", character1.x, character1.y);
 			}
 			break;
+		/*case ALLEGRO_KEY_RIGHT:
+			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
+				character1.x += 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;*/
 		case ALLEGRO_KEY_X:
 			menu_run();
 		}
@@ -382,31 +397,31 @@ void on_key_down(int keycode) {
 			message_number++;
 		else if (message_number == 1) {
 			if (menu_number_chose == 0) {
-				if (keycode == ALLEGRO_KEY_1) {
+				if (keycode == ALLEGRO_KEY_1 || keycode == ALLEGRO_KEY_PAD_1) {
 					menu_number_chose = 1;
 					printf("choose 1\n");
 				}
-				else if (keycode == ALLEGRO_KEY_2) {
+				else if (keycode == ALLEGRO_KEY_2 || keycode == ALLEGRO_KEY_PAD_2) {
 					menu_number_chose = 2;
 					printf("choose 2\n");
 				}
-				else if (keycode == ALLEGRO_KEY_3) {
+				else if (keycode == ALLEGRO_KEY_3 || keycode == ALLEGRO_KEY_PAD_3) {
 					menu_number_chose = 3;
 					printf("choose 3\n");
 				}
-				else if (keycode == ALLEGRO_KEY_4) {
+				else if (keycode == ALLEGRO_KEY_4 || keycode == ALLEGRO_KEY_PAD_4) {
 					menu_number_chose = 4;
 					printf("choose 4\n");
 				}
-				else if (keycode == ALLEGRO_KEY_5) {
+				else if (keycode == ALLEGRO_KEY_5 || keycode == ALLEGRO_KEY_PAD_5) {
 					menu_number_chose = 5;
 					printf("choose 5\n");
 				}
-				else if (keycode == ALLEGRO_KEY_6) {
+				else if (keycode == ALLEGRO_KEY_6 || keycode == ALLEGRO_KEY_PAD_6) {
 					menu_number_chose = 6;
 					printf("choose 6\n");
 				}
-				else if (keycode == ALLEGRO_KEY_7) {
+				else if (keycode == ALLEGRO_KEY_7 || keycode == ALLEGRO_KEY_PAD_7) {
 					menu_number_chose = 7;
 					printf("choose 7\n");
 				}
@@ -517,10 +532,10 @@ void event_window(){
 
 		else if (character1.x == 675 && character1.y == 300)
 			pop_up_window = true;
-		else if ((character1.x == 325 && character1.y == 350) || (character1.x == 350 && character1.y == 400)
+		/*else if ((character1.x == 325 && character1.y == 350) || (character1.x == 350 && character1.y == 400)
 			|| (character1.x == 350 && character1.y == 375) || (character1.x == 325 && character1.y == 400)) {
 			pop_up_window = true;
-		}
+		}*/
 	}
 
 	/*else if (window == 5) {
@@ -596,7 +611,7 @@ int game_run() {
 						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
 							"Hotel Owner, Toriel:");
 						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"Hello, do you wanna sleep with me...for days...?Oh...nothing...");
+							"Hello, do you wanna sleep with me...?Oh...nothing...");
 						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
 							"Do you want to rest here?");
 						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
@@ -618,7 +633,7 @@ int game_run() {
 						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
 							"Hotel Owner, Toriel:");
 						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"You only need to pay 81000 dollar for HEALing your life point.Or...for only $100.");
+							"You only need to pay $81000 for HEALing your HP.Or...for only $100.");
 						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
 							"(press 'z' for YES and 'x' for NO)");
 						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
@@ -1176,6 +1191,17 @@ bool check_boundary(int x, int y)
 	else
 		return true;
 }
+
+
+
+
+
+
+
+
+
+
+
 
 void menu_run() {//顯示 血量、金錢、裝備、物品
 
