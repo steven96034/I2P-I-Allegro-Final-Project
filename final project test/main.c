@@ -164,16 +164,16 @@ int process_event() {
 		{
 			// Control
 		case ALLEGRO_KEY_W:
-			character1.y -= 30;
+			character1.y -= 60;
 			break;
 		case ALLEGRO_KEY_S:
-			character1.y += 30;
+			character1.y += 60;
 			break;
 		case ALLEGRO_KEY_A:
-			character1.x -= 30;
+			character1.x -= 60;
 			break;
 		case ALLEGRO_KEY_D:
-			character1.x += 30;
+			character1.x += 60;
 			break;
 
 			// For Start Menu
