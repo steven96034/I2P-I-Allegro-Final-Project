@@ -8,18 +8,21 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 
+#define LOG_ENABLED
+
 #define GAME_TERMINATE -1
 
 // ALLEGRO Variables
 ALLEGRO_DISPLAY* display = NULL;
-
 ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 
+//character
 ALLEGRO_BITMAP *image = NULL;
 ALLEGRO_BITMAP *image2 = NULL;
 ALLEGRO_BITMAP *image3 = NULL;
 ALLEGRO_BITMAP *Light_Dot = NULL;
 
+//picture
 ALLEGRO_BITMAP *Healing_Potion = NULL;
 ALLEGRO_BITMAP *An_One_Thousand_Dollar_Paper_Banknote = NULL;
 ALLEGRO_BITMAP *Samurai_Sword = NULL;
@@ -28,31 +31,55 @@ ALLEGRO_BITMAP *UnderArmor = NULL;
 ALLEGRO_BITMAP *Maples_Shield = NULL;
 ALLEGRO_BITMAP *The_Boardshort_Stuffed_with_One_Million_Dollars = NULL;
 
-
+//keyboard
 ALLEGRO_KEYBOARD_STATE keyState;
 
+//timer
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_TIMER *timer2 = NULL;
 ALLEGRO_TIMER *timer3 = NULL;
+ALLEGRO_TIMER* game_update_timer;
 
+//bgm
 ALLEGRO_SAMPLE *title_bgm = NULL;
 ALLEGRO_SAMPLE *village_bgm = NULL;
 ALLEGRO_SAMPLE *INN_bgm = NULL;
 ALLEGRO_SAMPLE *grocerystore_bgm = NULL;
 
+//bgm id
 ALLEGRO_SAMPLE_ID title_bgm_id = { 0 };
 ALLEGRO_SAMPLE_ID village_bgm_id = { 0 };
 ALLEGRO_SAMPLE_ID INN_bgm_id = { 0 };
 ALLEGRO_SAMPLE_ID grocerystore_bgm_id = { 0 };
 
+//background
 ALLEGRO_BITMAP *title_bg = NULL;
 ALLEGRO_BITMAP *menu_bg = NULL;
 ALLEGRO_BITMAP *village_bg = NULL;
 ALLEGRO_BITMAP *INN_bg = NULL;
 ALLEGRO_BITMAP *grocerystore_bg = NULL;
 
+//setting(battle)
+ALLEGRO_BITMAP* backgroud = NULL;
+ALLEGRO_BITMAP* Board = NULL;
+ALLEGRO_BITMAP* hero = NULL;
+//mon
+ALLEGRO_BITMAP* Chosen = NULL;
+ALLEGRO_BITMAP* Cultist = NULL;
+ALLEGRO_BITMAP* Louse = NULL;
+//card
+ALLEGRO_BITMAP* Bash = NULL;
+ALLEGRO_BITMAP* Cleave = NULL;
+ALLEGRO_BITMAP* Defend = NULL;
+ALLEGRO_BITMAP* Ironwave = NULL;
+ALLEGRO_BITMAP* Strike = NULL;
+//setting of Boss
+ALLEGRO_BITMAP* Boss = NULL;
+ALLEGRO_BITMAP* Bossroom = NULL;
 
+//font
 ALLEGRO_FONT *menu_font = NULL;
+ALLEGRO_FONT* font;
 
 
 
@@ -60,8 +87,20 @@ ALLEGRO_FONT *menu_font = NULL;
 //Custom Definition
 const char *title = "Final Project 108030001 108030027";
 const float FPS = 60;
+
 const int WIDTH = 900;
 const int HEIGHT = 900;
+const int SCREEN_W = 900;
+const int SCREEN_H = 900;
+
+bool key1 = true;
+bool key2 = true;
+bool key3 = true;
+bool key4 = true;
+bool key5 = true;
+
+
+
 typedef struct character
 {
 	int x;
@@ -75,17 +114,38 @@ Character character2;
 Character character3;
 Character light_dot;
 
+typedef struct {
+	int valid;
+	int cost;
+	int armour;
+	int damage;
+	int vulnerable;
+	int aoe;
+
+
+}card;
+
+typedef struct {
+	int hp;
+	int atk;
+	int interval;
+	int money;
+
+}mon;
+
 
 int imageWidth = 0;
 int imageHeight = 0;
 int draw = 0;
 int done = 0;
+int judge_next_window = 0;
 int window = 1;
 int message_number = 0;
 int menu_number_chose = 0;
 
+
+
 bool pop_up_window = false;
-bool judge_next_window = false;
 bool check_boundary(int x, int y);
 bool check_purchase = false;
 bool check_purchase_frame = false;
@@ -96,17 +156,26 @@ bool next = false; //true: trigger
 bool dir = true; //true: left, false: right
 bool key_state[ALLEGRO_KEY_MAX];
 
+float x, y;
+
 
 void on_key_down(int keycode);
 
-void show_err_msg(int msg);
+void game_abort(const char* format, ...);
+//void show_err_msg(int msg);
 void game_init();
 void load_data();
+void game_set();
 void game_begin();
 int process_event();
 void event_window();
 int game_run();
 void game_destroy();
+
+void game_update();
+
+void game_log(const char* format, ...);
+void game_vlog(const char* format, va_list arg);
 
 void menu_run();
 void grocerystore_run();
@@ -117,11 +186,11 @@ void grocerystore_run();
 
 bool pnt_in_rect(int px, int py, int x, int y, int w, int h);
 
-//Inventory
+//Main Status
 int money = 30000;//set initial amount
 int hp_max = 50;//set initial amount
 int hp_now = 40;//set initial amount
-
+//Main Inventory
 int amount_of_Healing_Potion = 0;
 int amount_of_An_One_Thousand_Dollar_Paper_Banknote = 0;
 int amount_of_Samurai_Sword = 0;
@@ -136,6 +205,7 @@ int main(int argc, char *argv[]) {
 	int msg = 0;
 
 	game_init();
+	game_set();
 	game_begin();
 
 	while (msg != GAME_TERMINATE) {
@@ -143,38 +213,37 @@ int main(int argc, char *argv[]) {
 		if (msg == GAME_TERMINATE)
 			printf("Game Over\n");
 	}
-
 	game_destroy();
 	return 0;
 }
 
-void show_err_msg(int msg) {
+/*void show_err_msg(int msg) {
 	fprintf(stderr, "unexpected msg: %d\n", msg);
 	game_destroy();
 	exit(9);
-}
+}*/
 
 void game_init() {
 	if (!al_init()) {
-		show_err_msg(-1);
+		game_abort("Initialize error.\n");
 	}
 	if (!al_install_audio()) {
 		fprintf(stderr, "failed to initialize audio!\n");
-		show_err_msg(-2);
+		game_abort("Install audio error.\n");
 	}
 	if (!al_init_acodec_addon()) {
 		fprintf(stderr, "failed to initialize audio codecs!\n");
-		show_err_msg(-3);
+		game_abort("Initialize audio codecs error.\n");
 	}
 	if (!al_reserve_samples(10)) {
 		fprintf(stderr, "failed to reserve samples!\n");
-		show_err_msg(-4);
+		game_abort("Reserve samples error.\n");
 	}
 	// Create display
 	display = al_create_display(WIDTH, HEIGHT);
 	event_queue = al_create_event_queue();
 	if (display == NULL || event_queue == NULL) {
-		show_err_msg(-5);
+		game_abort("display or event_queue equal to null.\n");
 	}
 	// Initialize Allegro settings
 	al_set_window_position(display, 0, 0);
@@ -190,6 +259,12 @@ void game_init() {
 	// Register event
 	al_register_event_source(event_queue, al_get_display_event_source(display));
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
+	/*al_register_event_source(event_queue, al_get_timer_event_source(game_update_timer));
+	al_start_timer(game_update_timer);
+
+	game_update_timer = al_create_timer(1.0f / FPS);
+	if (!game_update_timer)
+		game_abort("failed to create timer");*/
 }
 
 void load_data() {
@@ -198,7 +273,7 @@ void load_data() {
 	village_bgm = al_load_sample("01_True.mp3");
 	INN_bgm = al_load_sample("Undertale OST_ 012 - Home.mp3");
 	if (INN_bgm == NULL)
-		show_err_msg(56);
+		game_abort("INN_bgm loaded error.\n");
 	grocerystore_bgm = al_load_sample("Undertale OST_ 023 - Shop.mp3");
 
 	//se
@@ -208,6 +283,19 @@ void load_data() {
 	village_bg = al_load_bitmap("map_village.png");
 	INN_bg = al_load_bitmap("map_village_INN.png");
 	grocerystore_bg = al_load_bitmap("map_village_grocerystore.jpg");
+	//load the background
+	backgroud = al_load_bitmap("dungeon.jpg");
+	if (!backgroud)
+		game_abort("failed to load image: dungeon");
+
+	Board = al_load_bitmap("Board.jpg");
+	if (!Board)
+		game_abort("failed to load image:  Board");
+
+	hero = al_load_bitmap("hero.png");
+	if (!hero)
+		game_abort("failed to load image: hero");
+
 
 	//picture
 	Healing_Potion = al_load_bitmap("Healing_Potion.jpg");
@@ -223,6 +311,118 @@ void load_data() {
 
 	//font
 	menu_font = al_load_ttf_font("NotoSansCJKtc-Medium.otf", 20, 0);
+	font = al_load_ttf_font("pirulen.ttf", 12, 0);
+	//load the font
+	if (!font)
+		game_abort("failed to load font: pirulen.ttf");
+
+	//load the mon
+	Chosen = al_load_bitmap("Chosen.png");
+	if (!Chosen)
+		game_abort("failed to load image: Chosen");
+
+	Cultist = al_load_bitmap("Cultist.png");
+	if (!Cultist)
+		game_abort("failed to load image: Cultist");
+
+	Louse = al_load_bitmap("Louse.png");
+	if (!Louse)
+		game_abort("failed to load image: Louse");
+
+	//Boss
+	Boss = al_load_bitmap("Boss.png");
+	if (!Boss)
+		game_abort("failed to load image: Boss");
+
+	Bossroom = al_load_bitmap("Bossroom.jpg");
+	if (!Bossroom)
+		game_abort("failed to load image: Bossroom");
+
+	//card
+	Bash = al_load_bitmap("Bash.png");
+	if (!Bash)
+		game_abort("failed to load image: Bash");
+
+	Cleave = al_load_bitmap("Cleave.png");
+	if (!Cleave)
+		game_abort("failed to load image: Cleave");
+
+	Defend = al_load_bitmap("Defend.png");
+	if (!Defend)
+		game_abort("failed to load image: Defend");
+
+	Ironwave = al_load_bitmap("Ironwave.png");
+	if (!Ironwave)
+		game_abort("failed to load image: Ironwave");
+
+	Strike = al_load_bitmap("Strike.png");
+	if (!Strike)
+		game_abort("failed to load image: Strike");
+
+
+}
+
+void game_set() {
+	// set the card
+	card bash;
+	bash.valid = 1;
+	bash.cost = 2;
+	bash.armour = 0;
+	bash.damage = 8;
+	bash.vulnerable = 2;
+	bash.aoe = 0;
+
+	card cleave;
+	cleave.valid = 1;
+	cleave.cost = 1;
+	cleave.armour = 0;
+	cleave.damage = 8;
+	cleave.vulnerable = 0;
+	cleave.aoe = 1;
+
+	card  defend;
+	defend.valid = 1;
+	defend.cost = 1;
+	defend.armour = 5;
+	defend.damage = 0;
+	defend.vulnerable = 0;
+	defend.aoe = 0;
+
+	card  ironwave;
+	ironwave.valid = 1;
+	ironwave.cost = 1;
+	ironwave.armour = 5;
+	ironwave.damage = 5;
+	ironwave.vulnerable = 0;
+	ironwave.aoe = 0;
+
+	card  strike;
+	strike.valid = 1;
+	strike.cost = 1;
+	strike.armour = 0;
+	strike.damage = 6;
+	strike.vulnerable = 0;
+	strike.aoe = 0;
+	//set the monsters
+	mon  louse;           // hp;atk;interval;money;
+	louse.hp = 20;
+	louse.atk = 10;
+	louse.interval = 1;
+	louse.money = 100;
+
+	mon  cultist;
+	cultist.hp = 60;
+	cultist.atk = 20;
+	cultist.interval = 2;
+	cultist.money = 200;
+
+	mon  chosen;
+	chosen.hp = 90;
+	chosen.atk = 35;
+	chosen.interval = 3;
+	chosen.money = 400;
+
+
 
 }
 
@@ -231,7 +431,7 @@ void game_begin() {
 	/* Load sound
 	if (!song) {
 		printf("Audio clip sample not loaded!\n");
-		show_err_msg(-6);
+		game_abort("Audio clip sample loaded error.\n");
 	}*/
 	// Loop the song until the display closes
 	al_play_sample(title_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
@@ -282,7 +482,7 @@ int process_event() {
 }
 
 void on_key_down(int keycode) {
-	if (window != 1 && pop_up_window == false) {
+	if ((window == 2 || window == 3 || window == 4)&& pop_up_window == false) {
 		switch (keycode) {
 		case ALLEGRO_KEY_W:
 			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
@@ -336,9 +536,9 @@ void on_key_down(int keycode) {
 			menu_run();
 		}
 	}
-	else if (window == 1) {
+	else if (window == 1 && judge_next_window == 0) {
 		if (keycode == ALLEGRO_KEY_ENTER)
-			judge_next_window = true;
+			judge_next_window = 1;
 	}
 	else if (window == 3 && character1.y == 175) {
 		if (keycode == ALLEGRO_KEY_ENTER) {
@@ -476,7 +676,37 @@ void on_key_down(int keycode) {
 			}			
 		}
 	}
+
+
+	//battle
+	else if (judge_next_window == 2) {
+			if (keycode == ALLEGRO_KEY_1) {
+				key1 = false;
+				printf("key1 = false\n");
+			}
+			else if (keycode == ALLEGRO_KEY_2) {
+				key2 = false;
+				printf("key2 = false\n");
+			}
+			else if (keycode == ALLEGRO_KEY_3) {
+				key3 = false;
+				printf("key3 = false\n");
+			}
+			else if (keycode == ALLEGRO_KEY_4) {
+				key4 = false;
+				printf("key4 = false\n");
+			}
+			else if (keycode == ALLEGRO_KEY_5) {
+				key5 = false;
+				printf("key5 = false\n");
+			}
+			else if (keycode == ALLEGRO_KEY_ESCAPE) {
+				judge_next_window = 1;
+				window = 1;
+			}	
+	}
 }
+
 
 void event_window(){
 
@@ -487,7 +717,7 @@ void event_window(){
 			al_stop_sample(&village_bgm_id);
 			//al_destroy_sample(village_bgm);
 			if (!al_play_sample(INN_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &INN_bgm_id))
-				show_err_msg(4);
+				game_abort("INN_bgm sample plays error.\n");
 			character1.x = WIDTH / 2 - 25;
 			character1.y = 800 - 25;
 			printf("In INN:\n");
@@ -502,6 +732,14 @@ void event_window(){
 			character1.y = 800 - 275;
 			printf("In grocery store:\n");
 		}
+		else if (character1.x == 300 && character1.y == HEIGHT - 100) {
+			judge_next_window = 2;
+			window = 1;
+			al_stop_sample(&village_bgm_id);
+		}
+		
+
+
 		//else if...
 	}
 	else if (window == 3) {
@@ -559,6 +797,11 @@ void event_window(){
 		background = al_load_bitmap("map_village_specialhouse.png");
 
 	}*/
+	else if (judge_next_window == 2) {
+		if (window == 1) {
+			
+		}
+	}
 
 }
 
@@ -568,7 +811,7 @@ int game_run() {
 	if (window == 1) {
 		if (!al_is_event_queue_empty(event_queue)) {
 			error = process_event();
-			if (judge_next_window) {
+			if (judge_next_window == 1) {
 				window = 2;
 				al_stop_sample(&title_bgm_id);
 				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
@@ -588,6 +831,7 @@ int game_run() {
 				timer = al_create_timer(1.0 / 15.0);
 				timer2 = al_create_timer(1.0);
 				timer3 = al_create_timer(1.0 / 10.0);
+				
 				al_register_event_source(event_queue, al_get_timer_event_source(timer));
 				al_register_event_source(event_queue, al_get_timer_event_source(timer2));
 				al_register_event_source(event_queue, al_get_timer_event_source(timer3));
@@ -598,468 +842,517 @@ int game_run() {
 		}
 	}
 	// Second window(Main Game)
+	if(judge_next_window == 1){
+		if (window > 1) {
+			// Change Image for animation
+			if (window == 2) {
+				al_draw_bitmap(village_bg, 0, 0, 0);
+			}
+			if (window == 3) {
+				al_draw_bitmap(INN_bg, 0, 0, 0);
+				if (ture)
+					al_draw_bitmap(light_dot.image_path, light_dot.x, light_dot.y, 0);
+				if (character1.x == 525 && character1.y == 375) {
+					while (pop_up_window == true) {
+						while (message_number == 0) {
+							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+								"Hotel Owner, Toriel:");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"Hello, do you wanna sleep with me...?Oh...nothing...");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
+								"Do you want to rest here?");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
+								"Press ' Enter ' to continue!");
 
-	else if (window > 1) {
-		// Change Image for animation
-		if (window == 2) {
-			al_draw_bitmap(village_bg, 0, 0, 0);
-		}
-		if (window == 3) {
-			al_draw_bitmap(INN_bg, 0, 0, 0);
-			if (ture)
-				al_draw_bitmap(light_dot.image_path, light_dot.x, light_dot.y, 0);
-			if (character1.x == 525 && character1.y == 375) {
-				while (pop_up_window == true) {
-					while (message_number == 0) {
-						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-						al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
-							"Hotel Owner, Toriel:");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"Hello, do you wanna sleep with me...?Oh...nothing...");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
-							"Do you want to rest here?");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
-							"Press ' Enter ' to continue!");
-						
-						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-						al_flip_display();
-						error = process_event();
-						//press enter to continue
-					}
-					while (message_number == 1) {
-						al_draw_bitmap(INN_bg, 0, 0, 0);
-						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-						al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
-							"Your HP now %d/%d.", hp_now, hp_max);
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
-							"You have %d.", money);
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
-							"Hotel Owner, Toriel:");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"You only need to pay $81000 for HEALing your HP.Or...for only $100.");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
-							"(press 'z' for YES and 'x' for NO)");
-						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-						al_flip_display();
-						error = process_event();
-					}//press z for yes and x for no				
-					while (message_number == 2) {
-						//if (z) heal and reduce money    (remember to record)
-						al_draw_bitmap(INN_bg, 0, 0, 0);
-						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-						al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
-							"Your HP now %d/%d.", hp_now, hp_max);
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
-							"You have %d.", money);
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
-							"Hotel Owner, Toriel:");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"Thank you for coming my hotel!Have a nice day!");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
-							"Press ' Enter ' to continue!");
-						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-						al_flip_display();
-						message_number = 5;
-						error = process_event();
-					}					
-					while (message_number == 3) {//if (x) no heal
-						al_draw_bitmap(INN_bg, 0, 0, 0);
-						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-						al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
-							"Your HP now %d/%d.", hp_now, hp_max);
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
-							"You have %d.", money);
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
-							"Hotel Owner, Toriel:");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"That's okay.Remember to come here for one day!");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
-							"Press ' Enter ' to continue!");
-						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-						al_flip_display();
-						error = process_event();
-					}
-
-					while (message_number == 10) {
-						message_number = 2;
-					}
-					
-					while (message_number == 4) {
-						if (money >= 100) {
-							message_number = 11;
+							al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+							al_flip_display();
+							error = process_event();
+							//press enter to continue
+						}
+						while (message_number == 1) {
+							al_draw_bitmap(INN_bg, 0, 0, 0);
+							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
+								"Your HP now %d/%d.", hp_now, hp_max);
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
+								"You have %d.", money);
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+								"Hotel Owner, Toriel:");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"You only need to pay $81000 for HEALing your HP.Or...for only $100.");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
+								"(press 'z' for YES and 'x' for NO)");
+							al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+							al_flip_display();
+							error = process_event();
+						}//press z for yes and x for no				
+						while (message_number == 2) {
+							//if (z) heal and reduce money    (remember to record)
+							al_draw_bitmap(INN_bg, 0, 0, 0);
+							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
+								"Your HP now %d/%d.", hp_now, hp_max);
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
+								"You have %d.", money);
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+								"Hotel Owner, Toriel:");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"Thank you for coming my hotel!Have a nice day!");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
+								"Press ' Enter ' to continue!");
+							al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+							al_flip_display();
+							message_number = 5;
 							error = process_event();
 						}
-						else {
-							message_number = 12;
+						while (message_number == 3) {//if (x) no heal
+							al_draw_bitmap(INN_bg, 0, 0, 0);
+							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
+								"Your HP now %d/%d.", hp_now, hp_max);
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
+								"You have %d.", money);
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+								"Hotel Owner, Toriel:");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"That's okay.Remember to come here for one day!");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
+								"Press ' Enter ' to continue!");
+							al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+							al_flip_display();
+							error = process_event();
 						}
 
-					}	
-					while (message_number == 12) {
-						al_draw_bitmap(INN_bg, 0, 0, 0);
-						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-						al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-						money_shortage = true;
-						al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-						al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
-							"Your HP now %d/%d.", hp_now, hp_max);
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
-							"You have %d.", money);
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
-							"Hotel Owner, Toriel:");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"You only need to pay $81000 for HEALing your HP.Or...for only $100.");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
-							"(press 'z' for YES and 'x' for NO)");
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-							"You don't have enough money to rest!Get out of here!");
+						while (message_number == 10) {
+							message_number = 2;
+						}
 
-						al_flip_display();
-						message_number = 5;
-						error = process_event();
+						while (message_number == 4) {
+							if (money >= 100) {
+								message_number = 11;
+								error = process_event();
+							}
+							else {
+								message_number = 12;
+							}
+
+						}
+						while (message_number == 12) {
+							al_draw_bitmap(INN_bg, 0, 0, 0);
+							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
+							money_shortage = true;
+							al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 80, ALLEGRO_ALIGN_CENTRE,
+								"Your HP now %d/%d.", hp_now, hp_max);
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 200, HEIGHT / 2 + 110, ALLEGRO_ALIGN_CENTRE,
+								"You have %d.", money);
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+								"Hotel Owner, Toriel:");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"You only need to pay $81000 for HEALing your HP.Or...for only $100.");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
+								"(press 'z' for YES and 'x' for NO)");
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+								"You don't have enough money to rest!Get out of here!");
+
+							al_flip_display();
+							message_number = 5;
+							error = process_event();
+						}
+						while (message_number == 5)
+							error = process_event();
 					}
-					while (message_number == 5)
-						error = process_event();					
 				}
-			}		
-			else if (character1.y == 175) {
-				while (pop_up_window == true) {
-					al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-					al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-					if ((character1.x == 650 || character1.x == 675) && character1.y == 175) {
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"If you want to play more, please pay for the DLC of this game!");
-					}
-					else if (character1.x == 425 && character1.y == 175) {
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"There's NOTHING in this fireplace ! WHY are you seeking something here?");
-					}
-					al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
-						"Press ' Enter ' to continue!");
-					al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-					al_flip_display();
-					error = process_event();
-					if (pop_up_window == false) {
-						al_draw_bitmap(INN_bg, 0, 0, 0);
-						al_flip_display();
-						break;
-					}
-				}
-			}
-		}
-		if (window == 4) {
-			al_draw_bitmap(grocerystore_bg, 0, 0, 0);
-			if (character1.x == 675 && character1.y == 300) {
-				while (pop_up_window == true) {
-					while (message_number == 0) {
+				else if (character1.y == 175) {
+					while (pop_up_window == true) {
 						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
 						al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
-							"Grocery Store Owner, Mizuha:");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"Hi, do you want some Kuchikamizake?It tastes really great!");
+						if ((character1.x == 650 || character1.x == 675) && character1.y == 175) {
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"If you want to play more, please pay for the DLC of this game!");
+						}
+						else if (character1.x == 425 && character1.y == 175) {
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"There's NOTHING in this fireplace ! WHY are you seeking something here?");
+						}
 						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
-							"We have some special accessories for you to choose!");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
 							"Press ' Enter ' to continue!");
 						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 						al_flip_display();
 						error = process_event();
-						//press enter to continue
-					}
-					while (message_number == 1) {
-						al_draw_bitmap(grocerystore_bg, 0, 0, 0);
-						al_draw_rectangle(50, 100, WIDTH - 50, HEIGHT - 100, al_map_rgb(255, 255, 255), 5);
-						al_draw_filled_rectangle(50, 100, WIDTH - 50, HEIGHT - 100, al_map_rgb(61, 89, 171));
-						al_draw_line(50, 550, 850, 550, al_map_rgb(0, 0, 0), 5);
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, 125, ALLEGRO_ALIGN_CENTRE,
-							"Accessories List:");
-						al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 250, 125, ALLEGRO_ALIGN_CENTRE,
-							"You now have %d.", money);
-						al_draw_line(50, 175, 850, 175,al_map_rgb(0, 0, 0), 5);
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 200, ALLEGRO_ALIGN_LEFT,
-							"1.Healing Potion										$100");
-						al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 200, ALLEGRO_ALIGN_LEFT,
-							"You now have %d.", amount_of_Healing_Potion);
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 250, ALLEGRO_ALIGN_LEFT,
-							"2.An 'One Thousand Dollar' Paper Banknote			    $1000");
-						al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 250, ALLEGRO_ALIGN_LEFT,
-							"You now have %d.", amount_of_An_One_Thousand_Dollar_Paper_Banknote);
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 300, ALLEGRO_ALIGN_LEFT,
-							"3.Samurai Sword										$500");
-						al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 300, ALLEGRO_ALIGN_LEFT,
-							"You now have %d.", amount_of_Samurai_Sword);
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 350, ALLEGRO_ALIGN_LEFT,
-							"4.God's Sword - Plastic Bottle							$5000");
-						al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 350, ALLEGRO_ALIGN_LEFT,
-							"You now have %d.", amount_of_Gods_Sword_Plastic_Bottle);
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 400, ALLEGRO_ALIGN_LEFT,
-							"5.UnderArmor											$400");
-						al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 400, ALLEGRO_ALIGN_LEFT,
-							"You now have %d.", amount_of_UnderArmor);
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 450, ALLEGRO_ALIGN_LEFT,
-							"6.Maple's Shield										$100000");
-						al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 450, ALLEGRO_ALIGN_LEFT,
-							"You now have %d.", amount_of_Maples_Shield);
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 500, ALLEGRO_ALIGN_LEFT,
-							"7.The Boardshort Stuffed with One Million Dollars		$800");
-						al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 500, ALLEGRO_ALIGN_LEFT,
-							"You now have %d.", amount_of_The_Boardshort_Stuffed_with_One_Million_Dollars);
-						al_draw_text(menu_font, al_map_rgb(0, 0, 0), 75, 125, ALLEGRO_ALIGN_LEFT,
-							"Press 'x' to exit.");
-						if (menu_number_chose == 1) {
-							al_draw_bitmap(Healing_Potion, 600, 575, 0);
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-								"1.Healing Potion");
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-								"Good medicine for those who gets hurt.");
-							if (check_purchase == true) {
-								al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-								al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-								al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-									"Do you really want to buy: Healing Potion * 1");
-								if (check_purchase_final == true) {
-									if (money >= 100) {
-										amount_of_Healing_Potion++;//inventory + 1
-										money -= 100;
-										menu_number_chose = 0;
-										check_purchase = false;
-										check_purchase_final = false;
-										printf("amount_of_Healing_Potion + 1\n");
-									}
-									else {
-										money_shortage = true;
-										al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-										al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-										al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-											"You don't have enough money to buy this product!");
-									}
-								}
-							}
+						if (pop_up_window == false) {
+							al_draw_bitmap(INN_bg, 0, 0, 0);
+							al_flip_display();
+							break;
 						}
-						else if (menu_number_chose == 2) {
-							al_draw_bitmap(An_One_Thousand_Dollar_Paper_Banknote, 575, 625, 0);
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-								"2.An 'One Thousand Dollar' Paper Banknote");
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-								"Just a one thousand NT dollar.");
-							if (check_purchase == true) {
-								al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-								al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-								al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-									"Do you really want to buy: An 'One Thousand Dollar' Paper Banknote * 1");
-								if (check_purchase_final == true) {
-									if (money >= 1000) {
-										amount_of_An_One_Thousand_Dollar_Paper_Banknote++;//inventory + 1
-										money -= 1000;
-										menu_number_chose = 0;
-										check_purchase = false;
-										check_purchase_final = false;
-										printf("amount_of_An_One_Thousand_Dollar_Paper_Banknote + 1\n");
-									}
-									else {
-										money_shortage = true;
-										al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-										al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-										al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-											"You don't have enough money to buy this product!");
-									}
-								}
-							}
-						}
-						else if (menu_number_chose == 3) {
-							al_draw_bitmap(Samurai_Sword, 600, 575, 0);
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-								"3.Samurai Sword");
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-								"A not bad weapon for close quarters battle.");
-							if (check_purchase == true) {
-								al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-								al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-								al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-									"Do you really want to buy: Samurai Sword * 1");
-								if (check_purchase_final == true) {
-									if (money >= 500) {
-										amount_of_Samurai_Sword++;//inventory + 1
-										money -= 500;
-										menu_number_chose = 0;
-										check_purchase = false;
-										check_purchase_final = false;
-										printf("amount_of_Samurai_Sword + 1\n");
-									}
-									else {
-										money_shortage = true;
-										al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-										al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-										al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-											"You don't have enough money to buy this product!");
-									}
-								}
-							}
-						}
-						else if (menu_number_chose == 4) {
-							al_draw_bitmap(Gods_Sword_Plastic_Bottle, 550, 600, 0);
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-								"4.God's Sword - Plastic Bottle");
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-								"For the glory of Rome!");
-							if (check_purchase == true) {
-								al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-								al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-								al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-									"Do you really want to buy: God's Sword - Plastic Bottle * 1");
-								if (check_purchase_final == true) {
-									if (money >= 5000) {
-										amount_of_Gods_Sword_Plastic_Bottle++;//inventory + 1
-										money -= 5000;
-										menu_number_chose = 0;
-										check_purchase = false;
-										check_purchase_final = false;
-										printf("amount_of_Gods_Sword_Plastic_Bottle + 1\n");
-									}
-									else {
-										money_shortage = true;
-										al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-										al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-										al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-											"You don't have enough money to buy this product!");
-									}
-								}
-							}
-						}
-						else if (menu_number_chose == 5) {
-							al_draw_bitmap(UnderArmor, 600, 575, 0);
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-								"5.UnderArmor");
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-								"?????????????");
-							if (check_purchase == true) {
-								al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-								al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-								al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-									"Do you really want to buy: UnderArmor * 1");
-								if (check_purchase_final == true) {
-									if (money >= 400) {
-										amount_of_UnderArmor++;//inventory + 1
-										money -= 400;
-										menu_number_chose = 0;
-										check_purchase = false;
-										check_purchase_final = false;
-										printf("amount_of_UnderArmor + 1\n");
-									}
-									else {
-										money_shortage = true;
-										al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-										al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-										al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-											"You don't have enough money to buy this product!");
-									}
-								}
-							}
-						}
-						else if (menu_number_chose == 6) {
-							al_draw_bitmap(Maples_Shield, 600, 575, 0);
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-								"6.Maple's Shield");
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-								"Maple is cute~~~");
-							if (check_purchase == true) {
-								al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-								al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-								al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-									"Do you really want to buy: Maple's Shield * 1");
-								if (check_purchase_final == true) {
-									if (money >= 100000) {
-										amount_of_Maples_Shield++;//inventory + 1
-										money -= 100000;
-										menu_number_chose = 0;
-										check_purchase = false;
-										check_purchase_final = false;
-										printf("amount_of_Maples_Shield + 1\n");
-									}
-									else {
-										money_shortage = true;
-										al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-										al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-										al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-											"You don't have enough money to buy this product!");
-									}
-								}
-							}
-						}
-						else if (menu_number_chose == 7) {
-							al_draw_bitmap(The_Boardshort_Stuffed_with_One_Million_Dollars, 600, 560, 0);
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-								"7.The Boardshort Stuffed with One Million Dollars");
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-								"The symbol of a DonFan.");
-							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 750, ALLEGRO_ALIGN_LEFT,
-								"If you have one, you can make a great deal of money![UC's Boardshort]");
-							if (check_purchase == true) {
-								al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-								al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-								al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-									"Do you really want to buy: The Boardshort Stuffed with One Million Dollars * 1");
-								if (check_purchase_final == true) {
-									if (money >= 800) {
-										amount_of_The_Boardshort_Stuffed_with_One_Million_Dollars++;//inventory + 1
-										money -= 800;
-										menu_number_chose = 0;
-										check_purchase = false;
-										check_purchase_final = false;
-										printf("amount_of_The_Boardshort_Stuffed_with_One_Million_Dollars + 1\n");
-									}
-									else {
-										money_shortage = true;
-										al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
-										al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
-										al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-											"You don't have enough money to buy this product!");
-									}
-								}
-							}
-
-						}
-
-						//al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-						al_flip_display();
-						error = process_event();
-					}//choose			
-					while (message_number == 2) {
-						//if (z) heal and reduce money    (remember to record)
-						al_draw_bitmap(grocerystore_bg, 0, 0, 0);
-						al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-						al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
-						al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
-							"Grocery Store Owner, Mizuha:");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-							"Thank you for buying somthing here!See ya!");
-						al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
-							"Press ' Enter ' to continue!");
-						al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-						al_flip_display();
-						error = process_event();
 					}
 				}
 			}
+			if (window == 4) {
+				al_draw_bitmap(grocerystore_bg, 0, 0, 0);
+				if (character1.x == 675 && character1.y == 300) {
+					while (pop_up_window == true) {
+						while (message_number == 0) {
+							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+								"Grocery Store Owner, Mizuha:");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"Hi, do you want some Kuchikamizake?It tastes really great!");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
+								"We have some special accessories for you to choose!");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
+								"Press ' Enter ' to continue!");
+							al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+							al_flip_display();
+							error = process_event();
+							//press enter to continue
+						}
+						while (message_number == 1) {
+							al_draw_bitmap(grocerystore_bg, 0, 0, 0);
+							al_draw_rectangle(50, 100, WIDTH - 50, HEIGHT - 100, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(50, 100, WIDTH - 50, HEIGHT - 100, al_map_rgb(61, 89, 171));
+							al_draw_line(50, 550, 850, 550, al_map_rgb(0, 0, 0), 5);
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, 125, ALLEGRO_ALIGN_CENTRE,
+								"Accessories List:");
+							al_draw_textf(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 + 250, 125, ALLEGRO_ALIGN_CENTRE,
+								"You now have %d.", money);
+							al_draw_line(50, 175, 850, 175, al_map_rgb(0, 0, 0), 5);
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 200, ALLEGRO_ALIGN_LEFT,
+								"1.Healing Potion										$100");
+							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 200, ALLEGRO_ALIGN_LEFT,
+								"You now have %d.", amount_of_Healing_Potion);
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 250, ALLEGRO_ALIGN_LEFT,
+								"2.An 'One Thousand Dollar' Paper Banknote			    $1000");
+							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 250, ALLEGRO_ALIGN_LEFT,
+								"You now have %d.", amount_of_An_One_Thousand_Dollar_Paper_Banknote);
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 300, ALLEGRO_ALIGN_LEFT,
+								"3.Samurai Sword										$500");
+							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 300, ALLEGRO_ALIGN_LEFT,
+								"You now have %d.", amount_of_Samurai_Sword);
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 350, ALLEGRO_ALIGN_LEFT,
+								"4.God's Sword - Plastic Bottle							$5000");
+							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 350, ALLEGRO_ALIGN_LEFT,
+								"You now have %d.", amount_of_Gods_Sword_Plastic_Bottle);
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 400, ALLEGRO_ALIGN_LEFT,
+								"5.UnderArmor											$400");
+							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 400, ALLEGRO_ALIGN_LEFT,
+								"You now have %d.", amount_of_UnderArmor);
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 450, ALLEGRO_ALIGN_LEFT,
+								"6.Maple's Shield										$100000");
+							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 450, ALLEGRO_ALIGN_LEFT,
+								"You now have %d.", amount_of_Maples_Shield);
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 500, ALLEGRO_ALIGN_LEFT,
+								"7.The Boardshort Stuffed with One Million Dollars		$800");
+							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 500, ALLEGRO_ALIGN_LEFT,
+								"You now have %d.", amount_of_The_Boardshort_Stuffed_with_One_Million_Dollars);
+							al_draw_text(menu_font, al_map_rgb(0, 0, 0), 75, 125, ALLEGRO_ALIGN_LEFT,
+								"Press 'x' to exit.");
+							if (menu_number_chose == 1) {
+								al_draw_bitmap(Healing_Potion, 600, 575, 0);
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
+									"1.Healing Potion");
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
+									"Good medicine for those who gets hurt.");
+								if (check_purchase == true) {
+									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+										"Do you really want to buy: Healing Potion * 1");
+									if (check_purchase_final == true) {
+										if (money >= 100) {
+											amount_of_Healing_Potion++;//inventory + 1
+											money -= 100;
+											menu_number_chose = 0;
+											check_purchase = false;
+											check_purchase_final = false;
+											printf("amount_of_Healing_Potion + 1\n");
+										}
+										else {
+											money_shortage = true;
+											al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+											al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+											al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+												"You don't have enough money to buy this product!");
+										}
+									}
+								}
+							}
+							else if (menu_number_chose == 2) {
+								al_draw_bitmap(An_One_Thousand_Dollar_Paper_Banknote, 575, 625, 0);
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
+									"2.An 'One Thousand Dollar' Paper Banknote");
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
+									"Just a one thousand NT dollar.");
+								if (check_purchase == true) {
+									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+										"Do you really want to buy: An 'One Thousand Dollar' Paper Banknote * 1");
+									if (check_purchase_final == true) {
+										if (money >= 1000) {
+											amount_of_An_One_Thousand_Dollar_Paper_Banknote++;//inventory + 1
+											money -= 1000;
+											menu_number_chose = 0;
+											check_purchase = false;
+											check_purchase_final = false;
+											printf("amount_of_An_One_Thousand_Dollar_Paper_Banknote + 1\n");
+										}
+										else {
+											money_shortage = true;
+											al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+											al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+											al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+												"You don't have enough money to buy this product!");
+										}
+									}
+								}
+							}
+							else if (menu_number_chose == 3) {
+								al_draw_bitmap(Samurai_Sword, 600, 575, 0);
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
+									"3.Samurai Sword");
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
+									"A not bad weapon for close quarters battle.");
+								if (check_purchase == true) {
+									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+										"Do you really want to buy: Samurai Sword * 1");
+									if (check_purchase_final == true) {
+										if (money >= 500) {
+											amount_of_Samurai_Sword++;//inventory + 1
+											money -= 500;
+											menu_number_chose = 0;
+											check_purchase = false;
+											check_purchase_final = false;
+											printf("amount_of_Samurai_Sword + 1\n");
+										}
+										else {
+											money_shortage = true;
+											al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+											al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+											al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+												"You don't have enough money to buy this product!");
+										}
+									}
+								}
+							}
+							else if (menu_number_chose == 4) {
+								al_draw_bitmap(Gods_Sword_Plastic_Bottle, 550, 600, 0);
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
+									"4.God's Sword - Plastic Bottle");
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
+									"For the glory of Rome!");
+								if (check_purchase == true) {
+									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+										"Do you really want to buy: God's Sword - Plastic Bottle * 1");
+									if (check_purchase_final == true) {
+										if (money >= 5000) {
+											amount_of_Gods_Sword_Plastic_Bottle++;//inventory + 1
+											money -= 5000;
+											menu_number_chose = 0;
+											check_purchase = false;
+											check_purchase_final = false;
+											printf("amount_of_Gods_Sword_Plastic_Bottle + 1\n");
+										}
+										else {
+											money_shortage = true;
+											al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+											al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+											al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+												"You don't have enough money to buy this product!");
+										}
+									}
+								}
+							}
+							else if (menu_number_chose == 5) {
+								al_draw_bitmap(UnderArmor, 600, 575, 0);
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
+									"5.UnderArmor");
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
+									"?????????????");
+								if (check_purchase == true) {
+									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+										"Do you really want to buy: UnderArmor * 1");
+									if (check_purchase_final == true) {
+										if (money >= 400) {
+											amount_of_UnderArmor++;//inventory + 1
+											money -= 400;
+											menu_number_chose = 0;
+											check_purchase = false;
+											check_purchase_final = false;
+											printf("amount_of_UnderArmor + 1\n");
+										}
+										else {
+											money_shortage = true;
+											al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+											al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+											al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+												"You don't have enough money to buy this product!");
+										}
+									}
+								}
+							}
+							else if (menu_number_chose == 6) {
+								al_draw_bitmap(Maples_Shield, 600, 575, 0);
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
+									"6.Maple's Shield");
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
+									"Maple is cute~~~");
+								if (check_purchase == true) {
+									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+										"Do you really want to buy: Maple's Shield * 1");
+									if (check_purchase_final == true) {
+										if (money >= 100000) {
+											amount_of_Maples_Shield++;//inventory + 1
+											money -= 100000;
+											menu_number_chose = 0;
+											check_purchase = false;
+											check_purchase_final = false;
+											printf("amount_of_Maples_Shield + 1\n");
+										}
+										else {
+											money_shortage = true;
+											al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+											al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+											al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+												"You don't have enough money to buy this product!");
+										}
+									}
+								}
+							}
+							else if (menu_number_chose == 7) {
+								al_draw_bitmap(The_Boardshort_Stuffed_with_One_Million_Dollars, 600, 560, 0);
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
+									"7.The Boardshort Stuffed with One Million Dollars");
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
+									"The symbol of a DonFan.");
+								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 750, ALLEGRO_ALIGN_LEFT,
+									"If you have one, you can make a great deal of money![UC's Boardshort]");
+								if (check_purchase == true) {
+									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+										"Do you really want to buy: The Boardshort Stuffed with One Million Dollars * 1");
+									if (check_purchase_final == true) {
+										if (money >= 800) {
+											amount_of_The_Boardshort_Stuffed_with_One_Million_Dollars++;//inventory + 1
+											money -= 800;
+											menu_number_chose = 0;
+											check_purchase = false;
+											check_purchase_final = false;
+											printf("amount_of_The_Boardshort_Stuffed_with_One_Million_Dollars + 1\n");
+										}
+										else {
+											money_shortage = true;
+											al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
+											al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
+											al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
+												"You don't have enough money to buy this product!");
+										}
+									}
+								}
+
+							}
+
+							//al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+							al_flip_display();
+							error = process_event();
+						}//choose			
+						while (message_number == 2) {
+							//if (z) heal and reduce money    (remember to record)
+							al_draw_bitmap(grocerystore_bg, 0, 0, 0);
+							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
+							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+								"Grocery Store Owner, Mizuha:");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
+								"Thank you for buying somthing here!See ya!");
+							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
+								"Press ' Enter ' to continue!");
+							al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+							al_flip_display();
+							error = process_event();
+						}
+					}
+				}
+			}
+			//if (1)
+			al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+
+			//if (dir) al_draw_bitmap(character2.image_path, character2.x, character2.y, 0);
+			//else al_draw_bitmap(character3.image_path, character2.x, character2.y, 0);
+
+			al_flip_display();
+			al_clear_to_color(al_map_rgb(0, 0, 0));
+
+			// Listening for new event
+			if (!al_is_event_queue_empty(event_queue)) {
+				error = process_event();
+			}
 		}
-		//if (1)
-		al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 
-		//if (dir) al_draw_bitmap(character2.image_path, character2.x, character2.y, 0);
-		//else al_draw_bitmap(character3.image_path, character2.x, character2.y, 0);
 
-		al_flip_display();
-		al_clear_to_color(al_map_rgb(0, 0, 0));
 
-		// Listening for new event
-		if (!al_is_event_queue_empty(event_queue)) {
-			error = process_event();
+		//battle
+		if (judge_next_window == 2) {
+			while (window == 1) {
+				//printf("in game_run window judge_next_window == 2\n");
+				al_draw_bitmap(Board, 0, 0, 0);
+				al_draw_bitmap(backgroud, 0, 0, 0);
+
+				al_draw_rectangle(3, 429,
+					997, 997,
+					al_map_rgb(255, 255, 255), 6);
+
+
+				al_draw_rectangle(770, 0, 997, 429, al_map_rgb(255, 255, 255), 2);
+				// al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_W / 2, 30,
+				//              ALLEGRO_ALIGN_CENTER, "How to deal with bugs in your final project");
+
+
+
+
+
+				// al_draw_text(font, al_map_rgb(255, 255, 255), SCREEN_W / 2, 550,
+				//              ALLEGRO_ALIGN_CENTER, "Source: http://cartoontester.blogspot.com/2010/01/big-bugs.html");
+
+				al_draw_bitmap(hero, 0, 150, 0);
+				//  al_draw_bitmap(Louse,390,250,0);
+				//  al_draw_bitmap(Chosen,390,150,0);
+				//   al_draw_bitmap(Cultist,390,150,0);
+
+
+				if (key1 == true)  al_draw_bitmap(Bash, 0, 430, 0);
+				if (key2 == true)  al_draw_bitmap(Cleave, 200, 430, 0);
+				if (key3 == true)  al_draw_bitmap(Defend, 400, 430, 0);
+				if (key4 == true)  al_draw_bitmap(Ironwave, 600, 430, 0);
+				if (key5 == true)  al_draw_bitmap(Strike, 800, 430, 0);
+
+
+
+				//printf("al_flip_display in  judge_next_window == 2\n");
+				al_flip_display();
+				error = process_event();
+				if (judge_next_window != 2)
+					break;
+			}
 		}
+		
 	}
 	return error;
 }
@@ -1216,8 +1509,42 @@ bool check_boundary(int x, int y)
 		return true;
 }
 
+void game_abort(const char* format, ...) {
+	va_list arg;
+	va_start(arg, format);
+	game_vlog(format, arg);
+	va_end(arg);
+	fprintf(stderr, "error occured, exiting after 2 secs");
+	// Wait 2 secs before exiting.
+	al_rest(2);
+	// Force exit program.
+	exit(1);
+}
 
+void game_log(const char* format, ...) {
+#ifdef LOG_ENABLED
+	va_list arg;
+	va_start(arg, format);
+	game_vlog(format, arg);
+	va_end(arg);
+#endif
+}
 
+void game_vlog(const char* format, va_list arg) {
+#ifdef LOG_ENABLED
+	static bool clear_file = true;
+	vprintf(format, arg);
+	printf("\n");
+	// Write log to file for later debugging.
+	FILE* pFile = fopen("log.txt", clear_file ? "w" : "a");
+	if (pFile) {
+		vfprintf(pFile, format, arg);
+		fprintf(pFile, "\n");
+		fclose(pFile);
+	}
+	clear_file = false;
+#endif
+}
 
 
 
