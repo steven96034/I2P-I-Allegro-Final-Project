@@ -47,17 +47,12 @@ ALLEGRO_SAMPLE *INN_bgm = NULL;
 ALLEGRO_SAMPLE *grocerystore_bgm = NULL;
 ALLEGRO_SAMPLE *Bossmusic = NULL;
 ALLEGRO_SAMPLE *Dungeonmusic = NULL;
-ALLEGRO_SAMPLE *Strikesound = NULL;
-ALLEGRO_SAMPLE *Monstersound = NULL;
-
 
 //bgm id
 ALLEGRO_SAMPLE_ID title_bgm_id = { 0 };
 ALLEGRO_SAMPLE_ID village_bgm_id = { 0 };
 ALLEGRO_SAMPLE_ID INN_bgm_id = { 0 };
 ALLEGRO_SAMPLE_ID grocerystore_bgm_id = { 0 };
-ALLEGRO_SAMPLE_ID Bossmusic_id = { 0 };
-ALLEGRO_SAMPLE_ID Dungeonmusic_id = { 0 };
 
 //background
 ALLEGRO_BITMAP *title_bg = NULL;
@@ -65,7 +60,6 @@ ALLEGRO_BITMAP *menu_bg = NULL;
 ALLEGRO_BITMAP *village_bg = NULL;
 ALLEGRO_BITMAP *INN_bg = NULL;
 ALLEGRO_BITMAP *grocerystore_bg = NULL;
-ALLEGRO_BITMAP *dungeon_map = NULL;
 
 //setting(battle)
 ALLEGRO_BITMAP* backgroud = NULL;
@@ -169,14 +163,8 @@ mon  cultist;
 mon  chosen;
 mon boss;
 
-//set the stage and wounded
+//set the stage
 int stage;
-int wound;
-
-
-
-
-
 
 //set the hero
 warrior man;
@@ -235,7 +223,7 @@ void grocerystore_run();
 bool pnt_in_rect(int px, int py, int x, int y, int w, int h);
 
 //Main Status
-int money = 1000;//set initial amount
+int money = 30000;//set initial amount
 int hp_max = 50;//set initial amount
 int hp_now = 40;//set initial amount
 //Main Inventory
@@ -320,8 +308,6 @@ void load_data() {
 	title_bgm = al_load_sample("Undertale OST_ 002 - Start Menu.mp3");
 	Bossmusic= al_load_sample("battle in boss.mp3");
 	Dungeonmusic= al_load_sample("battle.mp3");
-	Strikesound = al_load_sample("strike sound.mp3");
-	Monstersound= al_load_sample("strike 2.mp3");
 	village_bgm = al_load_sample("01_True.mp3");
 	INN_bgm = al_load_sample("Undertale OST_ 012 - Home.mp3");
 	if (INN_bgm == NULL)
@@ -346,10 +332,6 @@ void load_data() {
 
 	hero = al_load_bitmap("hero.png");
 	if (!hero)
-		game_abort("failed to load image: hero");
-
-	dungeon_map = al_load_bitmap("dungeon_map.png");
-	if (!dungeon_map)
 		game_abort("failed to load image: hero");
 
 
@@ -548,12 +530,6 @@ card  shuffle(int x) {
 
 }
 
-int stage_random() {
-	int a;
-	a = (rand() % 20) % 3 + 1;
-	return a;
-}
-
 
 
 
@@ -561,7 +537,7 @@ int random(void) {
 	int a;
 	a = (rand() % 20) + 1;
 
-	printf("%d\n", a);
+
 	return a;
 }
 
@@ -621,67 +597,63 @@ int process_event() {
 }
 
 void on_key_down(int keycode) {
-
-	if (window == 1 && judge_next_window == 0) {
+	if ((window == 2 || window == 3 || window == 4)&& pop_up_window == false) {
+		switch (keycode) {
+		case ALLEGRO_KEY_W:
+			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
+				character1.y -= 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;
+		/*case ALLEGRO_KEY_UP:
+			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
+				character1.y -= 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;*/
+		case ALLEGRO_KEY_S:
+			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
+				character1.y += 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;
+		/*case ALLEGRO_KEY_DOWN:
+			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
+				character1.y += 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;*/
+		case ALLEGRO_KEY_A:
+			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
+				character1.x -= 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;
+		/*case ALLEGRO_KEY_LEFT:
+			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
+				character1.x -= 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;*/
+		case ALLEGRO_KEY_D:
+			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
+				character1.x += 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;
+		/*case ALLEGRO_KEY_RIGHT:
+			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
+				character1.x += 25;
+				printf("(%d,%d)\n", character1.x, character1.y);
+			}
+			break;*/
+		case ALLEGRO_KEY_X:
+			menu_run();
+		}
+	}
+	else if (window == 1 && judge_next_window == 0) {
 		if (keycode == ALLEGRO_KEY_ENTER)
 			judge_next_window = 1;
-	}
-	if (judge_next_window == 1) {
-		if ((window == 2 || window == 3 || window == 4) && pop_up_window == false) {
-			switch (keycode) {
-			case ALLEGRO_KEY_W:
-				if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
-					character1.y -= 25;
-					printf("(%d,%d)\n", character1.x, character1.y);
-				}
-				break;
-				/*case ALLEGRO_KEY_UP:
-					if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
-						character1.y -= 25;
-						printf("(%d,%d)\n", character1.x, character1.y);
-					}
-					break;*/
-			case ALLEGRO_KEY_S:
-				if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
-					character1.y += 25;
-					printf("(%d,%d)\n", character1.x, character1.y);
-				}
-				break;
-				/*case ALLEGRO_KEY_DOWN:
-					if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
-						character1.y += 25;
-						printf("(%d,%d)\n", character1.x, character1.y);
-					}
-					break;*/
-			case ALLEGRO_KEY_A:
-				if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
-					character1.x -= 25;
-					printf("(%d,%d)\n", character1.x, character1.y);
-				}
-				break;
-				/*case ALLEGRO_KEY_LEFT:
-					if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
-						character1.x -= 25;
-						printf("(%d,%d)\n", character1.x, character1.y);
-					}
-					break;*/
-			case ALLEGRO_KEY_D:
-				if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
-					character1.x += 25;
-					printf("(%d,%d)\n", character1.x, character1.y);
-				}
-				break;
-				/*case ALLEGRO_KEY_RIGHT:
-					if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
-						character1.x += 25;
-						printf("(%d,%d)\n", character1.x, character1.y);
-					}
-					break;*/
-			case ALLEGRO_KEY_X:
-				menu_run();
-			}
-		}
-
 	}
 	else if (window == 3 && character1.y == 175) {
 		if (keycode == ALLEGRO_KEY_ENTER) {
@@ -705,7 +677,7 @@ void on_key_down(int keycode) {
 		else if (message_number == 2 && keycode == ALLEGRO_KEY_ENTER) {
 			message_number = 5;
 			printf("just before in yes scene~~~\n");
-
+			
 		}
 		else if (message_number == 3 && keycode == ALLEGRO_KEY_ENTER) {
 			message_number = 5;
@@ -810,18 +782,22 @@ void on_key_down(int keycode) {
 				}
 			}
 		}
-		else if (message_number == 2) {
+		else if (message_number == 2) {		
 			if (keycode == ALLEGRO_KEY_ENTER) {
 				message_number = 0;
 				pop_up_window = false;
 				printf("final~~~\n");
 				character1.y += 25;
-			}
+			}			
 		}
 	}
 
-
 	
+	
+	
+	
+
+
 	//battle
 	else if (judge_next_window == 2) {
 	//attack from heros!
@@ -831,9 +807,9 @@ void on_key_down(int keycode) {
 		card3 = defend;
 		card4 = ironwave;
 		card5 = strike;
-		
-	   }
 
+	   }
+	     
 		
 	
 
@@ -841,7 +817,7 @@ void on_key_down(int keycode) {
 			if (keycode == ALLEGRO_KEY_1) {
 				
 				if (man.mana - card1.cost >= 0&&card1.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+
 					card1.valid = 0;
 					man.mana = man.mana - card1.cost;
 					man.armour = card1.armour+man.armour;
@@ -853,9 +829,6 @@ void on_key_down(int keycode) {
 					if (stage == 1) {
 					  if(man.buff>=1)man.buff--;
 						louse.hp = louse.hp - man.atk-man.buff*man.atk;
-						
-
-
 						if (louse.hp <= 0)man.money = man.money + louse.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -870,7 +843,6 @@ void on_key_down(int keycode) {
 						 turn++;
 						 louse.interval--;
 						 if (louse.interval == 0) {
-							 al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 							 man.hp = man.hp - louse.atk + man.armour;
 							 louse.interval = 1;
 
@@ -885,7 +857,6 @@ void on_key_down(int keycode) {
 					if (stage == 2) {
 						if (man.buff >= 1)man.buff--;
 						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
 						if (cultist.hp <= 0)man.money = man.money + cultist.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -900,7 +871,6 @@ void on_key_down(int keycode) {
 							turn++;
 							cultist.interval--;
 							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - cultist.atk + man.armour;
 								cultist.interval = 2;
 
@@ -916,7 +886,6 @@ void on_key_down(int keycode) {
 					if (stage == 3) {
 						if (man.buff >= 1)man.buff--;
 						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
 						if (chosen.hp <= 0)man.money = man.money + chosen.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -931,7 +900,6 @@ void on_key_down(int keycode) {
 							turn++;
 							chosen.interval--;
 							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - chosen.atk + man.armour;
 								chosen.interval = 3;
 
@@ -947,7 +915,6 @@ void on_key_down(int keycode) {
 					if (stage == 4) {
 						if (man.buff >= 1)man.buff--;
 						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						
 						if (boss.hp <= 0)man.money = man.money + boss.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -961,7 +928,6 @@ void on_key_down(int keycode) {
 							turn++;
 							boss.interval--;
 							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - boss.atk + man.armour;
 								boss.interval = 4;
 
@@ -989,7 +955,7 @@ void on_key_down(int keycode) {
 			}
 			else if (keycode == ALLEGRO_KEY_2) {
 				if (man.mana - card2.cost >= 0 &&card2.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+
 					card2.valid = 0;
 					man.mana = man.mana - card2.cost;
 					man.armour = card2.armour + man.armour;
@@ -1000,7 +966,6 @@ void on_key_down(int keycode) {
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
 						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						
 						if (louse.hp <= 0)man.money = man.money + louse.money;
 						if (man.mana <= 0) {
                         
@@ -1015,7 +980,6 @@ void on_key_down(int keycode) {
 						card5 = shuffle(random());
 						louse.interval--;
 						if (louse.interval == 0) {
-							al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 							man.hp = man.hp - louse.atk + man.armour;
 							louse.interval = 1;
 
@@ -1029,7 +993,6 @@ void on_key_down(int keycode) {
 					if (stage == 2) {
 						if (man.buff >= 1)man.buff--;
 						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
 						if (cultist.hp <= 0)man.money = man.money + cultist.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1044,7 +1007,6 @@ void on_key_down(int keycode) {
 							turn++;
 							cultist.interval--;
 							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - cultist.atk + man.armour;
 								cultist.interval = 2;
 
@@ -1059,7 +1021,6 @@ void on_key_down(int keycode) {
 					if (stage == 3) {
 						if (man.buff >= 1)man.buff--;
 						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
 						if (chosen.hp <= 0)man.money = man.money + chosen.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1074,7 +1035,6 @@ void on_key_down(int keycode) {
 							turn++;
 							chosen.interval--;
 							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - chosen.atk + man.armour;
 								chosen.interval = 3;
 
@@ -1089,7 +1049,6 @@ void on_key_down(int keycode) {
 					if (stage == 4) {
 						if (man.buff >= 1)man.buff--;
 						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-					
 						if (boss.hp <= 0)man.money = man.money + boss.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1104,7 +1063,6 @@ void on_key_down(int keycode) {
 							turn++;
 							boss.interval--;
 							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - boss.atk + man.armour;
 								boss.interval = 4;
 
@@ -1127,7 +1085,6 @@ void on_key_down(int keycode) {
 			}
 			else if (keycode == ALLEGRO_KEY_3) {
 				if (man.mana - card3.cost >= 0 &&card3.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 					card3.valid = 0;
 					man.mana = man.mana - card3.cost;
 					man.armour = card3.armour + man.armour;
@@ -1135,9 +1092,6 @@ void on_key_down(int keycode) {
 					man.buff = card3.vulnerable;
 					printf("Use card3!\n");
 					if (stage == 1) {
-						if (man.buff >= 1)man.buff--;
-						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						
 						
 						if (man.mana <= 0) {
                          
@@ -1152,7 +1106,6 @@ void on_key_down(int keycode) {
 						 card5 = shuffle(random());
 						 louse.interval--;
 						 if (louse.interval == 0) {
-							 al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 							 man.hp = man.hp - louse.atk + man.armour;
 							 louse.interval = 1;
 
@@ -1164,8 +1117,6 @@ void on_key_down(int keycode) {
 
 					}
 					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
 						
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1180,7 +1131,6 @@ void on_key_down(int keycode) {
 							turn++;
 							cultist.interval--;
 							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - cultist.atk + man.armour;
 								cultist.interval = 2;
 
@@ -1193,8 +1143,6 @@ void on_key_down(int keycode) {
 
 					}
 					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
 						
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1209,7 +1157,6 @@ void on_key_down(int keycode) {
 							turn++;
 							chosen.interval--;
 							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - chosen.atk + man.armour;
 								chosen.interval = 3;
 
@@ -1222,8 +1169,6 @@ void on_key_down(int keycode) {
 
 					}
 					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
 						
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1238,7 +1183,6 @@ void on_key_down(int keycode) {
 							turn++;
 							boss.interval--;
 							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - boss.atk + man.armour;
 								boss.interval = 4;
 
@@ -1260,7 +1204,6 @@ void on_key_down(int keycode) {
 			}
 			else if (keycode == ALLEGRO_KEY_4) {
 				if (man.mana - card4.cost >= 0 &&card4.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 					card4.valid = 0;
 					man.mana = man.mana - card4.cost;
 					man.armour = card4.armour + man.armour;
@@ -1271,7 +1214,6 @@ void on_key_down(int keycode) {
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
 						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						
 						if (louse.hp <= 0)man.money = man.money + louse.money;
 						if (man.mana <= 0) {
 						 
@@ -1286,7 +1228,6 @@ void on_key_down(int keycode) {
 							card5 = shuffle(random());
 							louse.interval--;
 							if (louse.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - louse.atk + man.armour;
 								louse.interval = 1;
 
@@ -1301,7 +1242,6 @@ void on_key_down(int keycode) {
 					if (stage == 2) {
 						if (man.buff >= 1)man.buff--;
 						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
 						if (cultist.hp <= 0)man.money = man.money + cultist.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1316,7 +1256,6 @@ void on_key_down(int keycode) {
 							turn++;
 							cultist.interval--;
 							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - cultist.atk + man.armour;
 								cultist.interval = 2;
 
@@ -1331,7 +1270,6 @@ void on_key_down(int keycode) {
 					if (stage == 3) {
 						if (man.buff >= 1)man.buff--;
 						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
 						if (chosen.hp <= 0)man.money = man.money + chosen.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1346,7 +1284,6 @@ void on_key_down(int keycode) {
 							turn++;
 							chosen.interval--;
 							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - chosen.atk + man.armour;
 								chosen.interval = 3;
 
@@ -1361,7 +1298,6 @@ void on_key_down(int keycode) {
 					if (stage == 4) {
 						if (man.buff >= 1)man.buff--;
 						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						
 						if (boss.hp <= 0)man.money = man.money + boss.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1375,7 +1311,6 @@ void on_key_down(int keycode) {
 							turn++;
 							boss.interval--;
 							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - boss.atk + man.armour;
 								boss.interval = 4;
 
@@ -1400,7 +1335,6 @@ void on_key_down(int keycode) {
 			}
 			else if (keycode == ALLEGRO_KEY_5) {
 				if (man.mana - card5.cost >= 0 &&card5.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 					card5.valid = 0;
 					man.mana = man.mana - card5.cost;
 					man.armour = card5.armour + man.armour;
@@ -1410,7 +1344,6 @@ void on_key_down(int keycode) {
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
 						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						
 						if (louse.hp <= 0)man.money = man.money + louse.money;
 						if (man.mana <= 0) {
                            
@@ -1425,7 +1358,6 @@ void on_key_down(int keycode) {
 							card5 = shuffle(random());
 							louse.interval--;
 							if (louse.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - louse.atk + man.armour;
 								louse.interval = 1;
 
@@ -1443,7 +1375,6 @@ void on_key_down(int keycode) {
 					if (stage == 2) {
 						if (man.buff >= 1)man.buff--;
 						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
 						if (cultist.hp <= 0)man.money = man.money + cultist.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1458,7 +1389,6 @@ void on_key_down(int keycode) {
 							turn++;
 							cultist.interval--;
 							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - cultist.atk + man.armour;
 								cultist.interval = 2;
 
@@ -1473,7 +1403,6 @@ void on_key_down(int keycode) {
 					if (stage == 3) {
 						if (man.buff >= 1)man.buff--;
 						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
 						if (chosen.hp <= 0)man.money = man.money + chosen.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1488,7 +1417,6 @@ void on_key_down(int keycode) {
 							turn++;
 							chosen.interval--;
 							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - chosen.atk + man.armour;
 								chosen.interval = 3;
 
@@ -1503,7 +1431,6 @@ void on_key_down(int keycode) {
 					if (stage == 4) {
 						if (man.buff >= 1)man.buff--;
 						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						
 						if (boss.hp <= 0)man.money = man.money + boss.money;
 						if (man.mana <= 0) {
 							man.mana = 4;
@@ -1518,7 +1445,6 @@ void on_key_down(int keycode) {
 							turn++;
 							boss.interval--;
 							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 								man.hp = man.hp - boss.atk + man.armour;
 								boss.interval = 4;
 
@@ -1547,162 +1473,99 @@ void on_key_down(int keycode) {
 			}	
         
 	}
+}
 
-	if (judge_next_window == 3) {
-		if (window == 0) {
-			switch (keycode) {
-			case ALLEGRO_KEY_W:
-				if (check_boundary(character1.x, character1.y - 25)) {
-					character1.y -= 25;
-					printf("(%d,%d)\n", character1.x, character1.y);
-				}
-				break;
-			case ALLEGRO_KEY_S:
-				if (check_boundary(character1.x, character1.y + 25)) {
-					character1.y += 25;
-					printf("(%d,%d)\n", character1.x, character1.y);
-				}
-				break;
-			case ALLEGRO_KEY_A:
-				if (check_boundary(character1.x - 25, character1.y)) {
-					character1.x -= 25;
-					printf("(%d,%d)\n", character1.x, character1.y);
-				}
-				break;
-			case ALLEGRO_KEY_D:
-				if (check_boundary(character1.x + 25, character1.y)) {
-					character1.x += 25;
-					printf("(%d,%d)\n", character1.x, character1.y);
-				}
-				break;
-			case ALLEGRO_KEY_X:
-				menu_run();
-			}
+
+void event_window(){
+
+	if (window == 2) {//in the village
+		if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
+			window = 3;
+			//al_draw_bitmap(INN_bg, 0, 0, 0);
+			al_stop_sample(&village_bgm_id);
+			//al_destroy_sample(village_bgm);
+			if (!al_play_sample(INN_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &INN_bgm_id))
+				game_abort("INN_bgm sample plays error.\n");
+			character1.x = WIDTH / 2 - 25;
+			character1.y = 800 - 25;
+			printf("In INN:\n");
 		}
+		else if (character1.x == 300 - 200 && character1.y == HEIGHT - 150 - 75) {//walk into grocery store
+			window = 4;
+			//al_draw_bitmap(grocerystore_bg, 0, 0, 0);
+			al_stop_sample(&village_bgm_id);
+			//al_destroy_sample(village_bgm);
+			al_play_sample(grocerystore_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &grocerystore_bgm_id);
+			character1.x = 675;
+			character1.y = 800 - 275;
+			printf("In grocery store:\n");
+		}
+		else if (character1.x == 300 && character1.y == HEIGHT - 100) {
+			judge_next_window = 2;
+			window = 1;
+			al_stop_sample(&village_bgm_id);
+		}
+		
+
+
+		//else if...
 	}
-
-
-void event_window() {
-	if (judge_next_window == 1) {
-		if (window == 2) {//in the village
-			if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
-				window = 3;
-				//al_draw_bitmap(INN_bg, 0, 0, 0);
-				al_stop_sample(&village_bgm_id);
-				//al_destroy_sample(village_bgm);
-				if (!al_play_sample(INN_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &INN_bgm_id))
-					game_abort("INN_bgm sample plays error.\n");
-				character1.x = WIDTH / 2 - 25;
-				character1.y = 800 - 25;
-				printf("In INN:\n");
-			}
-			else if (character1.x == 300 - 200 && character1.y == HEIGHT - 150 - 75) {//walk into grocery store
-				window = 4;
-				//al_draw_bitmap(grocerystore_bg, 0, 0, 0);
-				al_stop_sample(&village_bgm_id);
-				//al_destroy_sample(village_bgm);
-				al_play_sample(grocerystore_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &grocerystore_bgm_id);
-				character1.x = 675;
-				character1.y = 800 - 275;
-				printf("In grocery store:\n");
-			}
-			else if (character1.x == 300 && character1.y == HEIGHT - 100) {
-				judge_next_window = 2;
-				window = 1;
-				al_stop_sample(&village_bgm_id);
-				al_play_sample(Dungeonmusic, 0.4, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &Dungeonmusic_id);				
-			}
-
-
-
-			//else if...
-		}
-		else if (window == 3) {
-			if (character1.x == WIDTH / 2 - 25 && character1.y == 800) {//from INN back to village
-				window = 2;
-				//al_draw_bitmap(village_bg, 0, 0, 0);
-				al_stop_sample(&INN_bgm_id);
-				//al_destroy_sample(INN_bgm);
-				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
-				character1.x = 300;
-				character1.y = HEIGHT - 150 - 50;
-				printf("In village:\n");
-			}
-
-			else if ((character1.x == 650 || character1.x == 675) && character1.y == 175) //INN 2nd floor
-				pop_up_window = true;
-			else if (character1.x == 425 && character1.y == 175)//fire place
-				pop_up_window = true;
-			else if (character1.x == 525 && character1.y == 375)//host
-				pop_up_window = true;
-		}
-		else if (window == 4) {
-			if (character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
-				window = 2;
-				//al_draw_bitmap(village_bg, 0, 0, 0);
-				al_stop_sample(&grocerystore_bgm_id);
-				//al_destroy_sample(grocerystore_bgm);
-				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
-				character1.x = 300 - 200;
-				character1.y = HEIGHT - 150 - 50;
-				printf("In village:\n");
-			}
-
-			else if (character1.x == 675 && character1.y == 300)
-				pop_up_window = true;
-			/*else if ((character1.x == 325 && character1.y == 350) || (character1.x == 350 && character1.y == 400)
-				|| (character1.x == 350 && character1.y == 375) || (character1.x == 325 && character1.y == 400)) {
-				pop_up_window = true;
-			}*/
+	else if (window == 3) {
+		if (character1.x == WIDTH / 2 - 25 && character1.y == 800) {//from INN back to village
+			window = 2;
+			//al_draw_bitmap(village_bg, 0, 0, 0);
+			al_stop_sample(&INN_bgm_id);
+			//al_destroy_sample(INN_bgm);
+			al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
+			character1.x = 300;
+			character1.y = HEIGHT - 150 - 50;
+			printf("In village:\n");
 		}
 
-		/*else if (window == 5) {
-			background = al_load_bitmap("map_village_bar.png");
-
+		else if ((character1.x == 650 || character1.x == 675) && character1.y == 175) //INN 2nd floor
+			pop_up_window = true;
+		else if (character1.x == 425 && character1.y == 175)//fire place
+			pop_up_window = true;
+		else if (character1.x == 525 && character1.y == 375)//host
+			pop_up_window = true;
+	}
+	else if (window == 4) {
+		if (character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
+			window = 2;
+			//al_draw_bitmap(village_bg, 0, 0, 0);
+			al_stop_sample(&grocerystore_bgm_id);
+			//al_destroy_sample(grocerystore_bgm);
+			al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
+			character1.x = 300 - 200;
+			character1.y = HEIGHT - 150 - 50;
+			printf("In village:\n");
 		}
-		else if (window == 6) {
-			background = al_load_bitmap("map_village_defensewearstore.png");
 
-		}
-		else if (window == 7) {
-			background = al_load_bitmap("map_village_weaponstore.png");
-
-		}
-		else if (window == 8) {
-			background = al_load_bitmap("map_village_specialhouse.png");
-
+		else if (character1.x == 675 && character1.y == 300)
+			pop_up_window = true;
+		/*else if ((character1.x == 325 && character1.y == 350) || (character1.x == 350 && character1.y == 400)
+			|| (character1.x == 350 && character1.y == 375) || (character1.x == 325 && character1.y == 400)) {
+			pop_up_window = true;
 		}*/
 	}
 
-	else if (judge_next_window == 3) {
-		if (window == 0) {
-			if (character1.y == -25) {
-				int x = stage_random;//random monster
-				printf("%d\n", x);
-				printf("%d\n", stage_random);
-				if (x == 1) {
-					judge_next_window = 2;
-					stage = 1;
+	/*else if (window == 5) {
+		background = al_load_bitmap("map_village_bar.png");
 
-				}
-				else if (x == 2) {
-					judge_next_window = 2;
-					stage = 2;
-				}
-				else if (x == 3) {
-					judge_next_window = 2;
-					stage = 3;
-				}
-				else if (x == 4) {
-					character1.x = 300;
-					character1.y = HEIGHT - 150;
-					judge_next_window = 1;
-					window = 2;					
-				}								
-			}
-		}
-		
 	}
+	else if (window == 6) {
+		background = al_load_bitmap("map_village_defensewearstore.png");
+
+	}
+	else if (window == 7) {
+		background = al_load_bitmap("map_village_weaponstore.png");
+
+	}
+	else if (window == 8) {
+		background = al_load_bitmap("map_village_specialhouse.png");
+
+	}*/
+
 
 }
 
@@ -2236,7 +2099,7 @@ int game_run() {
 					ALLEGRO_ALIGN_CENTER, "money:%d", man.money);
 
 				//draw the monster 
-				if (stage == 1&&louse.hp>0&&wound==0) {
+				if (stage == 1&&louse.hp>0) {
 				
 					al_draw_bitmap(Louse, 390, 250, 0);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
@@ -2251,7 +2114,7 @@ int game_run() {
 				}
 				
 
-				if (stage == 2&&cultist.hp>0 && wound == 0) {
+				if (stage == 2&&cultist.hp>0) {
                     al_draw_bitmap(Cultist, 390, 150, 0);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
 						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
@@ -2263,7 +2126,7 @@ int game_run() {
 						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", cultist.interval);
 				}
 				 
-				if (stage == 3&&chosen.hp>0 && wound == 0) {
+				if (stage == 3&&chosen.hp>0) {
 					al_draw_bitmap(Chosen, 390, 150, 0);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
 						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
@@ -2275,7 +2138,7 @@ int game_run() {
 						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", chosen.interval);
 
 				}
-				if (stage == 4 && boss.hp > 0 && wound == 0) {
+				if (stage == 4 && boss.hp > 0) {
 					al_draw_bitmap(Boss, 390, 100, 0);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
 						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
@@ -2365,17 +2228,6 @@ int game_run() {
 		}
 		
 	}
-	if (judge_next_window == 3) {
-		while (window == 0) {
-			al_draw_bitmap(dungeon_map, 0, 0, 0);
-			al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-
-			al_flip_display();
-			error = process_event();
-			if (judge_next_window != 3)
-				break;
-		}
-	}
 	return error;
 }
 
@@ -2393,154 +2245,138 @@ void game_destroy() {
 
 bool check_boundary(int x, int y) 
 {
-	if (judge_next_window == 1) {
-		if (window == 2) {
-			if (x == 100 && y == 675)
-				return true;
-			else if (x >= 100 && x <= 500 && y == 700)
-				return true;
-			else if (x == 500 && y >= 625 && y <= 675)
-				return true;
-			else if (x == 300 && y == 675)
-				return true;
-			else if (x == 175 && y >= 500 && y <= 675)
-				return true;
-			else if (x >= 50 && x <= 425 && y == 475)
-				return true;
-			else if (x == 375 && y == 450)
-				return true;
-			else if (x == 250 && y == 450)
-				return true;
-			else if (x >= 125 && x <= 150 && y >= 400 && y <= 450)
-				return true;
-			else if (x >= 150 && x <= 175 && y == 375)
-				return true;
-			else if (x == 100 && y == 400)
-				return true;
-			else if (x == 75 && y == 400)
-				return true;
-			else if (x == 75 && y == 425)
-				return true;
-			else if (x == 150 && y == 350)
-				return true;
-			else if (x == 425 && y >= 175 && y <= 675)
-				return true;
-			else if (x >= 175 && x <= 400 && y == 175)
-				return true;
-			else if (x >= 450 && x <= 700 && y == 400)
-				return true;
-			else if (x >= 725 && x <= 800 && y >= 375 && y <= 425)
-				return true;
-			else if (x >= 725 && x <= 750 && y == 450)
-				return true;
-			else if (x == 725 && y == 475)
-				return true;
-			else if (x == 700 && y >= 475 && y <= 625)
-				return true;
-			else if (x >= 725 && x <= 800 && y >= 600 && y <= 675)
-				return true;
-			else if (x == 800 && y >= 525 && y <= 575)
-				return true;
-			else if (x == 775 && y >= 550 && y <= 575)
-				return true;
-			else if (x == 800 && y >= 75 && y <= 350)
-				return true;
-			else if (x == 775 && y >= 100 && y <= 125)
-				return true;
-			else if (x >= 750 && x <= 775 && y >= 200 && y <= 300)
-				return true;
-			else if (x == 300 && y >= 725 && y <= 800)
-				return true;
-			else
-				return false;
-		}
-		if (window == 3) {
-			if (x == 700 && y >= 300 && y <= 600)
-				return true;
-			else if (x >= 650 && x <= 675 && y >= 175 && y <= 650)
-				return true;
-			else if (x >= 575 && x <= 625 && y >= 300 && y <= 650)
-				return true;
-			else if (x == 525 && y >= 375 && y <= 650)
-				return true;
-			else if (x >= 375 && x <= 475 && y >= 375 && y <= 650)
-				return true;
-			else if (x == 425 && y >= 675 && y <= 800)
-				return true;
-			else if (x >= 150 && x <= 350 && y >= 375 && y <= 575)
-				return true;
-			else if (x >= 150 && x <= 325 && y == 600)
-				return true;
-			else if (x >= 175 && x <= 325 && y >= 625 && y <= 650)
-				return true;
-			else if (x == 500 && x >= 375 && y <= 575)
-				return true;
-			else if (x == 550 && y >= 375 && y <= 650)
-				return true;
-			else if (x >= 175 && x <= 500 && y == 275)
-				return true;
-			else if (x >= 325 && x <= 500 && y >= 200 && y <= 275)
-				return true;
-			else if (x == 425 && y == 175)
-				return true;
-			else
-				return false;
-		}
-		else if (window == 4) {
-			if (x == 675 && y >= 425 && y <= 550)
-				return true;
-			else if (x >= 525 && x <= 825 && y >= 300 && y <= 400)
-				return true;
-			else if (x >= 350 && x <= 500 && y == 400)
-				return true;
-			else if (x == 325 && y == 400)
-				return true;
-			else if (x >= 325 && x <= 400 && y >= 425 && y <= 675)
-				return true;
-			else if (x >= 150 && x <= 300 && y == 675)
-				return true;
-			else if (x >= 150 && x <= 300 && y == 450)
-				return true;
-			else if (x >= 50 && x <= 125 && y >= 200 && y <= 675)
-				return true;
-			else if (x >= 150 && x <= 550 && y >= 200 && y <= 250)
-				return true;
-			else if (x == 325 && y >= 275 && y <= 350)
-				return true;
-			else if (x >= 450 && x <= 550 && y >= 150 && y <= 175)
-				return true;
-			else if (x >= 575 && x <= 700 && y == 150)
-				return true;
-			else if (x >= 700 && x <= 825 && y == 200)
-				return true;
-			else if (x == 700 && y == 175)
-				return true;
-			else if (x == 800 && y == 175)
-				return true;
-			else if (x == 825 && y == 175)
-				return true;
-			else if (x >= 150 && x <= 300 && y == 475)
-				return true;
-			else if (x == 525 && y == 275)
-				return true;
-			else if (x == 550 && y == 275)
-				return true;
-			else
-				return false;
-		}
+	if (window == 2) {
+		if (x == 100 && y == 675)
+			return true;
+		else if (x >= 100 && x <= 500 && y == 700)
+			return true;
+		else if (x == 500 && y >= 625 && y <= 675)
+			return true;
+		else if (x == 300 && y == 675)
+			return true;
+		else if (x == 175 && y >= 500 && y <= 675)
+			return true;
+		else if (x >= 50 && x <= 425 && y == 475)
+			return true;
+		else if (x == 375 && y == 450)
+			return true;
+		else if (x == 250 && y == 450)
+			return true;
+		else if (x >= 125 && x <= 150 && y >= 400 && y <= 450)
+			return true;
+		else if (x >= 150 && x <= 175 && y == 375)
+			return true;
+		else if (x == 100 && y == 400)
+			return true;
+		else if (x == 75 && y == 400)
+			return true;
+		else if (x == 75 && y == 425)
+			return true;
+		else if (x == 150 && y == 350)
+			return true;
+		else if (x == 425 && y >= 175 && y <= 675)
+			return true;
+		else if (x >= 175 && x <= 400 && y == 175)
+			return true;
+		else if (x >= 450 && x <= 700 && y == 400)
+			return true;
+		else if (x >= 725 && x <= 800 && y >= 375 && y <= 425)
+			return true;
+		else if (x >= 725 && x <= 750 && y == 450)
+			return true;
+		else if (x == 725 && y == 475)
+			return true;
+		else if (x == 700 && y >= 475 && y <= 625)
+			return true;
+		else if (x >= 725 && x <= 800 && y >= 600 && y <= 675)
+			return true;
+		else if (x == 800 && y >= 525 && y <= 575)
+			return true;
+		else if (x == 775 && y >= 550 && y <= 575)
+			return true;
+		else if (x == 800 && y >= 75 && y <= 350)
+			return true;
+		else if (x == 775 && y >= 100 && y <= 125)
+			return true;
+		else if (x >= 750 && x <= 775 && y >= 200 && y <= 300)
+			return true;
+		else if (x == 300 && y >= 725 && y <= 800)
+			return true;
+		else
+			return false;
 	}
-	if (judge_next_window == 3) {
-		if (x == 425 && y >= -25 && y <= 800)
+	if (window == 3) {
+		if (x == 700 && y >= 300 && y <= 600)
 			return true;
-		else if (x >= 375 && x <= 475 && y >= 550 && y <= 725)
+		else if (x >= 650 && x <= 675 && y >= 175 && y <= 650)
 			return true;
-		else if (x >= 100 && x <= 750 && y >= 475 && y <= 525)
+		else if (x >= 575 && x <= 625 && y >= 300 && y <= 650)
 			return true;
-		else if (x == 100 && y >= -25 && y <= 450)
+		else if (x == 525 && y >= 375 && y <= 650)
 			return true;
-		else if (x == 750 && y >= -25 && y <= 450)
+		else if (x >= 375 && x <= 475 && y >= 375 && y <= 650)
 			return true;
-		else 
+		else if (x == 425 && y >= 675 && y <= 800)
+			return true;
+		else if (x >= 150 && x <= 350 && y >= 375 && y <= 575)
+			return true;
+		else if (x >= 150 && x <= 325 && y == 600)
+			return true;
+		else if (x >= 175 && x <= 325 && y >= 625 && y <= 650)
+			return true;
+		else if (x == 500 && x >= 375 && y <= 575)
+			return true;
+		else if (x == 550 && y >= 375 && y <= 650)
+			return true;
+		else if (x >= 175 && x <= 500 && y == 275)
+			return true;
+		else if (x >= 325 && x <= 500 && y >= 200 && y <= 275)
+			return true;
+		else if (x == 425 && y == 175)
+			return true;
+		else
+			return false;
+	}
+	else if (window == 4) {
+		if (x == 675 && y >= 425 && y <= 550)
+			return true;
+		else if (x >= 525 && x <= 825 && y >= 300 && y <= 400)
+			return true;
+		else if (x >= 350 && x <= 500 && y == 400)
+			return true;
+		else if (x == 325 && y == 400)
+			return true;
+		else if (x >= 325 && x <= 400 && y >= 425 && y <= 675)
+			return true;
+		else if (x >= 150 && x <= 300 && y == 675)
+			return true;
+		else if (x >= 150 && x <= 300 && y == 450)
+			return true;
+		else if (x >= 50 && x <= 125 && y >= 200 && y <= 675)
+			return true;
+		else if (x >= 150 && x <= 550 && y >= 200 && y <= 250)
+			return true;
+		else if (x == 325 && y >= 275 && y <= 350)
+			return true;
+		else if (x >= 450 && x <= 550 && y >= 150 && y <= 175)
+			return true;
+		else if (x >= 575 && x <= 700 && y == 150)
+			return true;
+		else if (x >= 700 && x <= 825 && y == 200)
+			return true;
+		else if (x == 700 && y == 175)
+			return true;
+		else if (x == 800 && y == 175)
+			return true;
+		else if (x == 825 && y == 175)
+			return true;
+		else if (x >= 150 && x <= 300 && y == 475)
+			return true;
+		else if (x == 525 && y == 275)
+			return true;
+		else if (x == 550 && y == 275)
+			return true;
+		else
 			return false;
 	}
 	else
