@@ -22,4 +22,9 @@
       <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="D:\Desktop\新增資料夾 (2)\Image.png">
+      <Filter>資源檔</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

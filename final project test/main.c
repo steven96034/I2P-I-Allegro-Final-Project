@@ -162,6 +162,13 @@ card card4;
 card card5;
 
 
+//set the potion
+card potion1;
+card potion2;
+card potion3;
+card potion4;
+
+
 //set the monsters
 mon  louse;           // hp;atk;interval;money;
 mon  cultist;
@@ -460,6 +467,39 @@ void game_set() {
 	strike.vulnerable = 0;
 	strike.aoe = 0;
 	strike.index = 5;
+
+	potion1.valid = 1;
+	potion1.cost = 0;
+	potion1.armour = 0;
+	potion1.damage = 0;
+	potion1.vulnerable = 4;
+	potion1.aoe = 0;
+	potion1.index = 6;
+
+	potion2.valid = 1;
+	potion2.cost = 0;
+	potion2.armour = 0;
+	potion2.damage = 100;
+	potion2.vulnerable = 0;
+	potion2.aoe = 0;
+	potion2.index = 6;
+
+	
+	potion3.valid = 1;
+	potion3.cost = 0;
+	potion3.armour = 20;
+	potion3.damage = 0;
+	potion3.vulnerable = 0;
+	potion3.aoe = 0;
+	potion3.index = 6;
+
+	potion4.valid = 1;
+	potion4.cost = 0;
+	potion4.armour = 0;
+	potion4.damage = 0;
+	potion4.vulnerable = 0;
+	potion4.aoe = 100;  //hp คWญญ !
+	potion4.index = 6;
 
 
 	louse.hp = 75;
@@ -822,8 +862,35 @@ void on_key_down(int keycode) {
 		card5 = strike;
 		
 	   }
-
+	if (keycode == ALLEGRO_KEY_Q&&potion1.valid>0) {
 		
+		potion1.valid = potion1.valid-1;
+		man.buff = man.buff + 4;
+
+
+	}
+	
+	if (keycode == ALLEGRO_KEY_W && potion2.valid > 0) {
+		potion2.valid = potion2.valid - 1;
+		if (stage == 1)louse.hp = louse.hp - 100;
+		if (stage == 2)cultist.hp = cultist.hp - 100;
+		if (stage == 3)chosen.hp = chosen.hp - 100;
+		if (stage == 4)boss.hp = boss.hp - 100;
+
+
+	}
+
+	if (keycode == ALLEGRO_KEY_E && potion3.valid > 0) {
+		potion3.valid = potion3.valid - 1;
+		man.armour = man.armour + potion3.armour;
+
+	}
+	if (keycode == ALLEGRO_KEY_R && potion4.valid > 0) {
+		potion4.valid = potion4.valid - 1;
+		man.hp = man.hp + potion4.aoe;
+
+
+	}
 	
 
 	
@@ -2161,10 +2228,34 @@ int game_run() {
                 al_draw_rectangle(770, 0, 899, 429, al_map_rgb(255, 255, 255), 2);
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 10,
 					ALLEGRO_ALIGN_CENTER, "System");
+				al_draw_text(font, al_map_rgb(255, 255, 255), 450, 700,
+					ALLEGRO_ALIGN_CENTER, "Item:");
+
+				// load the potion
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 150, 850,
+					ALLEGRO_ALIGN_CENTER, "potion1:(%d/1)",potion1.valid);
+				al_draw_text(font, al_map_rgb(255, 255, 255), 150, 825,
+					ALLEGRO_ALIGN_CENTER, "Vulnerable+4");
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 350, 850,
+					ALLEGRO_ALIGN_CENTER, "potion2:(%d/1)", potion2.valid);
+				al_draw_text(font, al_map_rgb(255, 255, 255), 350, 825,
+					ALLEGRO_ALIGN_CENTER, "Damage 100pt");
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 550, 850,
+					ALLEGRO_ALIGN_CENTER, "potion3:(%d/1)", potion3.valid);
+				al_draw_text(font, al_map_rgb(255, 255, 255), 550, 825,
+					ALLEGRO_ALIGN_CENTER, "Armour+20");
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 750, 850,
+					ALLEGRO_ALIGN_CENTER, "potion4:(%d/1)", potion4.valid);
+				al_draw_text(font, al_map_rgb(255, 255, 255), 750, 825,
+					ALLEGRO_ALIGN_CENTER, "Hp+100");
+
+				// load the system
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 40,
 					ALLEGRO_ALIGN_CENTER, "turn:%d", turn);
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 830, 200,
 					ALLEGRO_ALIGN_CENTER, "money:%d", man.money);
+				
+
 
 				//draw the monster 
 				if (stage == 1&&louse.hp>0&&wound==0) {
@@ -2233,7 +2324,7 @@ int game_run() {
 					ALLEGRO_ALIGN_CENTER, "mana:%d", man.mana);
 				if (man.hp <= 0) {
 					al_draw_text(font, al_map_rgb(255, 255, 255), 815, 300,
-						ALLEGRO_ALIGN_CENTER, "You died.");
+						ALLEGRO_ALIGN_CENTER, "You died!!");
 					printf("You died.\n");
 				}
 				if (card1.valid != 0) {
