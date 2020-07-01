@@ -62,6 +62,7 @@ ALLEGRO_BITMAP *INN_bg = NULL;
 ALLEGRO_BITMAP *grocerystore_bg = NULL;
 
 //setting(battle)
+ALLEGRO_BITMAP* main_map = NULL;
 ALLEGRO_BITMAP* backgroud = NULL;
 ALLEGRO_BITMAP* Board = NULL;
 ALLEGRO_BITMAP* hero = NULL;
@@ -171,6 +172,9 @@ int window = 1;
 int message_number = 0;
 int menu_number_chose = 0;
 
+int map_start = 0;
+
+int node = 0;
 
 
 bool pop_up_window = false;
@@ -233,7 +237,7 @@ int main(int argc, char *argv[]) {
 	int msg = 0;
 	game_set();
 	game_init();
-	
+
 	game_begin();
 
 	while (msg != GAME_TERMINATE) {
@@ -298,8 +302,8 @@ void game_init() {
 void load_data() {
 	//bgm
 	title_bgm = al_load_sample("Undertale OST_ 002 - Start Menu.mp3");
-	Bossmusic= al_load_sample("battle in boss.mp3");
-	Dungeonmusic= al_load_sample("battle.mp3");
+	Bossmusic = al_load_sample("battle in boss.mp3");
+	Dungeonmusic = al_load_sample("battle.mp3");
 	village_bgm = al_load_sample("01_True.mp3");
 	INN_bgm = al_load_sample("Undertale OST_ 012 - Home.mp3");
 	if (INN_bgm == NULL)
@@ -326,6 +330,9 @@ void load_data() {
 	if (!hero)
 		game_abort("failed to load image: hero");
 
+	main_map = al_load_bitmap("map.jpg");
+	if (!main_map)
+		game_abort("failed to load image: map");
 
 	//picture
 	Healing_Potion = al_load_bitmap("Healing_Potion.jpg");
@@ -394,7 +401,7 @@ void load_data() {
 
 void game_set() {
 	//tell what monster is fighting now!!
-	 stage = 3;   
+	stage = 3;
 
 	bash.valid = 1;
 	bash.cost = 2;
@@ -499,7 +506,7 @@ int process_event() {
 
 	// Our setting for controlling animation
 	if (event.timer.source == timer) {
-		if (character2.x < - 150) dir = false;
+		if (character2.x < -150) dir = false;
 		else if (character2.x > WIDTH + 50) dir = true;
 
 		if (dir) character2.x -= 10;
@@ -524,198 +531,200 @@ int process_event() {
 }
 
 void on_key_down(int keycode) {
-	if ((window == 2 || window == 3 || window == 4)&& pop_up_window == false) {
-		switch (keycode) {
-		case ALLEGRO_KEY_W:
-			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
-				character1.y -= 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;
-		/*case ALLEGRO_KEY_UP:
-			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
-				character1.y -= 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;*/
-		case ALLEGRO_KEY_S:
-			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
-				character1.y += 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;
-		/*case ALLEGRO_KEY_DOWN:
-			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
-				character1.y += 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;*/
-		case ALLEGRO_KEY_A:
-			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
-				character1.x -= 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;
-		/*case ALLEGRO_KEY_LEFT:
-			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
-				character1.x -= 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;*/
-		case ALLEGRO_KEY_D:
-			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
-				character1.x += 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;
-		/*case ALLEGRO_KEY_RIGHT:
-			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
-				character1.x += 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;*/
-		case ALLEGRO_KEY_X:
-			menu_run();
-		}
-	}
-	else if (window == 1 && judge_next_window == 0) {
+	if (window == 1 && judge_next_window == 0) {
 		if (keycode == ALLEGRO_KEY_ENTER)
 			judge_next_window = 1;
 	}
-	else if (window == 3 && character1.y == 175) {
-		if (keycode == ALLEGRO_KEY_ENTER) {
-			pop_up_window = false;
-			character1.y += 25;
-		}
-	}
-	else if (window == 3 && character1.x == 525 && character1.y == 375) {
-		if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
-			message_number++;
-		else if (message_number == 1) {
-			if (keycode == ALLEGRO_KEY_Z) {
-				message_number = 4;
-				printf("heal(need to check enough money)~~~~~~\n");
+	if (judge_next_window == 1) {
+		if ((window == 2 || window == 3 || window == 4) && pop_up_window == false) {
+			switch (keycode) {
+			case ALLEGRO_KEY_W:
+				if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
+					character1.y -= 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+				/*case ALLEGRO_KEY_UP:
+					if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
+						character1.y -= 25;
+						printf("(%d,%d)\n", character1.x, character1.y);
+					}
+					break;*/
+			case ALLEGRO_KEY_S:
+				if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
+					character1.y += 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+				/*case ALLEGRO_KEY_DOWN:
+					if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
+						character1.y += 25;
+						printf("(%d,%d)\n", character1.x, character1.y);
+					}
+					break;*/
+			case ALLEGRO_KEY_A:
+				if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
+					character1.x -= 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+				/*case ALLEGRO_KEY_LEFT:
+					if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
+						character1.x -= 25;
+						printf("(%d,%d)\n", character1.x, character1.y);
+					}
+					break;*/
+			case ALLEGRO_KEY_D:
+				if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
+					character1.x += 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+				/*case ALLEGRO_KEY_RIGHT:
+					if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
+						character1.x += 25;
+						printf("(%d,%d)\n", character1.x, character1.y);
+					}
+					break;*/
+			case ALLEGRO_KEY_X:
+				menu_run();
 			}
-			else if (keycode == ALLEGRO_KEY_X) {
-				message_number = 3;
-				printf("no~~~~~\n");
+		}
+		else if (window == 3 && character1.y == 175) {
+			if (keycode == ALLEGRO_KEY_ENTER) {
+				pop_up_window = false;
+				character1.y += 25;
 			}
 		}
-		else if (message_number == 2 && keycode == ALLEGRO_KEY_ENTER) {
-			message_number = 5;
-			printf("just before in yes scene~~~\n");
-			
-		}
-		else if (message_number == 3 && keycode == ALLEGRO_KEY_ENTER) {
-			message_number = 5;
-			printf("just before in no scene~~~\n");
-		}
-		/*else if (message_number == 4 && keycode == ALLEGRO_KEY_ENTER) {
-			if (money_shortage == false) {
-				message_number = 2;
-			}
-			else
-				message_number = 5;
-		}*/
-		else if (message_number == 11) {
-			if (money >= 81000)
-				money -= 81000;
-			else
-				money -= 100;
-			hp_now = hp_max;
-			message_number = 2;
-		}
-		//else if (message_number == 12)
-		/*else if (message_number == 12 && keycode == ALLEGRO_KEY_ENTER) {
-			message_number = 0;
-			pop_up_window = false;
-			printf("final~~12~~\n");
-			character1.y += 25;
-		}*/
-		else if (message_number == 5 && keycode == ALLEGRO_KEY_ENTER) {
-			message_number = 0;
-			pop_up_window = false;
-			printf("final~~\n");
-			character1.y += 25;
-		}
-	}
-	else if (window == 4 && character1.x == 675 && character1.y == 300) {
-		if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
-			message_number++;
-		else if (message_number == 1) {
-			if (menu_number_chose == 0) {
-				if (keycode == ALLEGRO_KEY_1 || keycode == ALLEGRO_KEY_PAD_1) {
-					menu_number_chose = 1;
-					printf("choose 1\n");
-				}
-				else if (keycode == ALLEGRO_KEY_2 || keycode == ALLEGRO_KEY_PAD_2) {
-					menu_number_chose = 2;
-					printf("choose 2\n");
-				}
-				else if (keycode == ALLEGRO_KEY_3 || keycode == ALLEGRO_KEY_PAD_3) {
-					menu_number_chose = 3;
-					printf("choose 3\n");
-				}
-				else if (keycode == ALLEGRO_KEY_4 || keycode == ALLEGRO_KEY_PAD_4) {
-					menu_number_chose = 4;
-					printf("choose 4\n");
-				}
-				else if (keycode == ALLEGRO_KEY_5 || keycode == ALLEGRO_KEY_PAD_5) {
-					menu_number_chose = 5;
-					printf("choose 5\n");
-				}
-				else if (keycode == ALLEGRO_KEY_6 || keycode == ALLEGRO_KEY_PAD_6) {
-					menu_number_chose = 6;
-					printf("choose 6\n");
-				}
-				else if (keycode == ALLEGRO_KEY_7 || keycode == ALLEGRO_KEY_PAD_7) {
-					menu_number_chose = 7;
-					printf("choose 7\n");
+		else if (window == 3 && character1.x == 525 && character1.y == 375) {
+			if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
+				message_number++;
+			else if (message_number == 1) {
+				if (keycode == ALLEGRO_KEY_Z) {
+					message_number = 4;
+					printf("heal(need to check enough money)~~~~~~\n");
 				}
 				else if (keycode == ALLEGRO_KEY_X) {
-					message_number++;
-					printf("exit\n");
+					message_number = 3;
+					printf("no~~~~~\n");
 				}
 			}
-			else if (menu_number_chose != 0) {
-				if (check_purchase == false) {
-					if (keycode == ALLEGRO_KEY_Z) {
-						check_purchase = true;
-						printf("check_purchase = true\n");
-					}
-					else if (keycode == ALLEGRO_KEY_X) {
-						menu_number_chose = 0;
-						printf("menu_number_chose = 0\n");
-						printf("exit\n");
-					}
-				}
-				else if (check_purchase == true) {
-					if (money_shortage == true && keycode == ALLEGRO_KEY_Z) {
-						money_shortage = false;
-						check_purchase_final = false;
-						check_purchase = false;
-						printf("money_shortage = false\n");
-						printf("check_purchase_final = false\n");
-					}
-					else if (keycode == ALLEGRO_KEY_Z) {
-						check_purchase_final = true;
-						printf("check_purchase_final = true\n");
-					}
-					else if (keycode == ALLEGRO_KEY_X) {
-						check_purchase = false;
-						printf("check_purchase = false\n");
-						printf("exit\n");
-					}
-				}
+			else if (message_number == 2 && keycode == ALLEGRO_KEY_ENTER) {
+				message_number = 5;
+				printf("just before in yes scene~~~\n");
+
 			}
-		}
-		else if (message_number == 2) {		
-			if (keycode == ALLEGRO_KEY_ENTER) {
+			else if (message_number == 3 && keycode == ALLEGRO_KEY_ENTER) {
+				message_number = 5;
+				printf("just before in no scene~~~\n");
+			}
+			/*else if (message_number == 4 && keycode == ALLEGRO_KEY_ENTER) {
+				if (money_shortage == false) {
+					message_number = 2;
+				}
+				else
+					message_number = 5;
+			}*/
+			else if (message_number == 11) {
+				if (money >= 81000)
+					money -= 81000;
+				else
+					money -= 100;
+				hp_now = hp_max;
+				message_number = 2;
+			}
+			//else if (message_number == 12)
+			/*else if (message_number == 12 && keycode == ALLEGRO_KEY_ENTER) {
 				message_number = 0;
 				pop_up_window = false;
-				printf("final~~~\n");
+				printf("final~~12~~\n");
 				character1.y += 25;
-			}			
+			}*/
+			else if (message_number == 5 && keycode == ALLEGRO_KEY_ENTER) {
+				message_number = 0;
+				pop_up_window = false;
+				printf("final~~\n");
+				character1.y += 25;
+			}
+		}
+		else if (window == 4 && character1.x == 675 && character1.y == 300) {
+			if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
+				message_number++;
+			else if (message_number == 1) {
+				if (menu_number_chose == 0) {
+					if (keycode == ALLEGRO_KEY_1 || keycode == ALLEGRO_KEY_PAD_1) {
+						menu_number_chose = 1;
+						printf("choose 1\n");
+					}
+					else if (keycode == ALLEGRO_KEY_2 || keycode == ALLEGRO_KEY_PAD_2) {
+						menu_number_chose = 2;
+						printf("choose 2\n");
+					}
+					else if (keycode == ALLEGRO_KEY_3 || keycode == ALLEGRO_KEY_PAD_3) {
+						menu_number_chose = 3;
+						printf("choose 3\n");
+					}
+					else if (keycode == ALLEGRO_KEY_4 || keycode == ALLEGRO_KEY_PAD_4) {
+						menu_number_chose = 4;
+						printf("choose 4\n");
+					}
+					else if (keycode == ALLEGRO_KEY_5 || keycode == ALLEGRO_KEY_PAD_5) {
+						menu_number_chose = 5;
+						printf("choose 5\n");
+					}
+					else if (keycode == ALLEGRO_KEY_6 || keycode == ALLEGRO_KEY_PAD_6) {
+						menu_number_chose = 6;
+						printf("choose 6\n");
+					}
+					else if (keycode == ALLEGRO_KEY_7 || keycode == ALLEGRO_KEY_PAD_7) {
+						menu_number_chose = 7;
+						printf("choose 7\n");
+					}
+					else if (keycode == ALLEGRO_KEY_X) {
+						message_number++;
+						printf("exit\n");
+					}
+				}
+				else if (menu_number_chose != 0) {
+					if (check_purchase == false) {
+						if (keycode == ALLEGRO_KEY_Z) {
+							check_purchase = true;
+							printf("check_purchase = true\n");
+						}
+						else if (keycode == ALLEGRO_KEY_X) {
+							menu_number_chose = 0;
+							printf("menu_number_chose = 0\n");
+							printf("exit\n");
+						}
+					}
+					else if (check_purchase == true) {
+						if (money_shortage == true && keycode == ALLEGRO_KEY_Z) {
+							money_shortage = false;
+							check_purchase_final = false;
+							check_purchase = false;
+							printf("money_shortage = false\n");
+							printf("check_purchase_final = false\n");
+						}
+						else if (keycode == ALLEGRO_KEY_Z) {
+							check_purchase_final = true;
+							printf("check_purchase_final = true\n");
+						}
+						else if (keycode == ALLEGRO_KEY_X) {
+							check_purchase = false;
+							printf("check_purchase = false\n");
+							printf("exit\n");
+						}
+					}
+				}
+			}
+			else if (message_number == 2) {
+				if (keycode == ALLEGRO_KEY_ENTER) {
+					message_number = 0;
+					pop_up_window = false;
+					printf("final~~~\n");
+					character1.y += 25;
+				}
+			}
 		}
 	}
 
@@ -726,162 +735,162 @@ void on_key_down(int keycode) {
 
 	//battle
 	else if (judge_next_window == 2) {
-	//attack from heros!
-	
-
-	
-			if (keycode == ALLEGRO_KEY_1) {
-				if (man.mana > 1&&bash.valid==1) {
-
-					bash.valid = 0;
-					man.mana = man.mana - bash.cost;
-
-					man.atk = bash.damage;
-					man.buff = 2;
-					man.buff = bash.vulnerable;
-
-					printf("Use bash!\n");
-					if (stage == 1) {
-					  if(man.buff>=1)man.buff--;
-						louse.hp = louse.hp - man.atk-man.buff*man.atk;
-						if (louse.hp <= 0)man.money = man.money + louse.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-                         
-						 turn++;
-						 louse.interval--;
-						 if (louse.interval == 0) {
-							 man.hp = man.hp - louse.atk + man.armour;
-							 louse.interval = 1;
+		//attack from heros!
 
 
-						 }
-						
-						}
-							
 
+		if (keycode == ALLEGRO_KEY_1) {
+			if (man.mana > 1 && bash.valid == 1) {
 
-					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
+				bash.valid = 0;
+				man.mana = man.mana - bash.cost;
 
+				man.atk = bash.damage;
+				man.buff = 2;
+				man.buff = bash.vulnerable;
 
-							}
+				printf("Use bash!\n");
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0)man.money = man.money + louse.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						louse.interval--;
+						if (louse.interval == 0) {
+							man.hp = man.hp - louse.atk + man.armour;
+							louse.interval = 1;
 
 
 						}
 
-
-
 					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
 
-
-							}
-
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						if (boss.hp <= 0)man.money = man.money + boss.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-							
-							
-
-
-						}
-
-
-
-					}
 
 
 				}
-				else if(bash.valid==0&&man.mana>0)printf("You have used the bash!\n");
-				else if(man.mana<=0){
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0)man.money = man.money + cultist.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
 
-                printf("You have no mana!\n");
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
+
+
+						}
+
+
+					}
+
+
+
 				}
-					
-					
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0)man.money = man.money + chosen.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
+
+
+						}
+
+
+					}
+
+
+
+				}
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0)man.money = man.money + boss.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
+
+
+
+
+					}
+
+
+
+				}
+
+
 			}
-			else if (keycode == ALLEGRO_KEY_2) {
-				if (man.mana > 0&&cleave.valid==1) {
-					cleave.valid = 0;
-					man.mana = man.mana - cleave.cost;
-					man.atk = cleave.damage;
-					man.aoe = cleave.aoe;
+			else if (bash.valid == 0 && man.mana > 0)printf("You have used the bash!\n");
+			else if (man.mana <= 0) {
 
-					printf("Use cleave!\n");
-					if (stage == 1) {
-						if (man.buff >= 1)man.buff--;
-						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						if (louse.hp <= 0)man.money = man.money + louse.money;
-						if (man.mana <= 0) {
-                        
+				printf("You have no mana!\n");
+			}
+
+
+		}
+		else if (keycode == ALLEGRO_KEY_2) {
+			if (man.mana > 0 && cleave.valid == 1) {
+				cleave.valid = 0;
+				man.mana = man.mana - cleave.cost;
+				man.atk = cleave.damage;
+				man.aoe = cleave.aoe;
+
+				printf("Use cleave!\n");
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0)man.money = man.money + louse.money;
+					if (man.mana <= 0) {
+
 						turn++;
 						man.mana = 4;
 						man.armour = 0;
@@ -898,582 +907,636 @@ void on_key_down(int keycode) {
 
 
 						}
-						}
-							
-
-
 					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
-
-
-							}
-
-						}
 
 
 
-					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
-
-
-							}
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						if (boss.hp <= 0)man.money = man.money + boss.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-
-
-						}
-
-
-
-					}
 				}
-				else if (cleave.valid == 0 && man.mana > 0)printf("You have used the cleave!\n");
-				else if ( man.mana <= 0) {
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0)man.money = man.money + cultist.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
 
-					printf("You have no mana!\n");
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0)man.money = man.money + chosen.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0)man.money = man.money + boss.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
+
+
+					}
+
+
+
+				}
+			}
+			else if (cleave.valid == 0 && man.mana > 0)printf("You have used the cleave!\n");
+			else if (man.mana <= 0) {
+
+				printf("You have no mana!\n");
+			}
+
+		}
+		else if (keycode == ALLEGRO_KEY_3) {
+			if (man.mana > 0 && defend.valid == 1) {
+				defend.valid = 0;
+				man.mana = man.mana - defend.cost;
+				man.armour = man.armour + defend.armour;
+				printf("Use defend!\n");
+				if (stage == 1) {
+
+					if (man.mana <= 0) {
+
+						turn++;
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+						louse.interval--;
+						if (louse.interval == 0) {
+							man.hp = man.hp - louse.atk + man.armour;
+							louse.interval = 1;
+
+
+						}
+					}
+
+
+
+				}
+				if (stage == 2) {
+
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 3) {
+
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 4) {
+
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
+
+					}
+
+
+
 				}
 
 			}
-			else if (keycode == ALLEGRO_KEY_3) {
-				if (man.mana > 0&&defend.valid==1) {
-					defend.valid = 0;
-					man.mana = man.mana - defend.cost;
-					man.armour = man.armour + defend.armour;
-					printf("Use defend!\n");
-					if (stage == 1) {
-						
-						if (man.mana <= 0) {
-                         
-                         turn++;
-                         man.mana = 4;
-                         man.armour = 0;
-                         man.atk = 0;
-                         bash.valid = 1;
-                         cleave.valid = 1;
-                         defend.valid = 1;
-                         ironwave.valid = 1;
-                         strike.valid = 1;
-						 louse.interval--;
-						 if (louse.interval == 0) {
-							 man.hp = man.hp - louse.atk + man.armour;
-							 louse.interval = 1;
+			else if (defend.valid == 0 && man.mana > 0)printf("You have used the defend!\n");
+			else if (man.mana <= 0) {
 
-
-						 }
-						}
-							
-
-
-					}
-					if (stage == 2) {
-						
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
-
-
-							}
-
-						}
-
-
-
-					}
-					if (stage == 3) {
-						
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
-
-
-							}
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-
-						}
-
-
-
-					}
-
-				}
-				else if (defend.valid == 0 && man.mana > 0)printf("You have used the defend!\n");
-				else if ( man.mana <= 0) {
-
-					printf("You have no mana!\n");
-				}
+				printf("You have no mana!\n");
 			}
-			else if (keycode == ALLEGRO_KEY_4) {
-				if (man.mana > 0&&ironwave.valid==1) {
-					ironwave.valid = 0;
-					man.mana = man.mana - ironwave.cost;
+		}
+		else if (keycode == ALLEGRO_KEY_4) {
+			if (man.mana > 0 && ironwave.valid == 1) {
+				ironwave.valid = 0;
+				man.mana = man.mana - ironwave.cost;
 
-					man.armour = man.armour + ironwave.armour;
-					man.atk = ironwave.damage;
-					printf("Use ironwave!\n");
+				man.armour = man.armour + ironwave.armour;
+				man.atk = ironwave.damage;
+				printf("Use ironwave!\n");
 
-					if (stage == 1) {
-						if (man.buff >= 1)man.buff--;
-						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						if (louse.hp <= 0)man.money = man.money + louse.money;
-						if (man.mana <= 0) {
-						 
-							turn++;
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							louse.interval--;
-							if (louse.interval == 0) {
-								man.hp = man.hp - louse.atk + man.armour;
-								louse.interval = 1;
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0)man.money = man.money + louse.money;
+					if (man.mana <= 0) {
 
+						turn++;
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+						louse.interval--;
+						if (louse.interval == 0) {
+							man.hp = man.hp - louse.atk + man.armour;
+							louse.interval = 1;
 
-							}
-
-						}
-							
-
-
-					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
-
-
-							}
 
 						}
 
-
-
 					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
 
 
-							}
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						if (boss.hp <= 0)man.money = man.money + boss.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-
-						}
-
-
-
-					}
 
 				}
-				else if (ironwave.valid == 0&&man.mana>0)printf("You have used the ironwave!\n");
-				else if (man.mana <= 0) {
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0)man.money = man.money + cultist.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
 
-					printf("You have no mana!\n");
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
+
+
+						}
+
+					}
+
+
+
 				}
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0)man.money = man.money + chosen.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
 
- 
-				
-			}
-			else if (keycode == ALLEGRO_KEY_5) {
-				if (man.mana > 0&&strike.valid==1) {
-					strike.valid = 0;
-					man.mana = man.mana - strike.cost;
-					man.atk = strike.damage;
-					printf("Use strike!");
-					if (stage == 1) {
-						if (man.buff >= 1)man.buff--;
-						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						if (louse.hp <= 0)man.money = man.money + louse.money;
-						if (man.mana <= 0) {
-                           
-							turn++;
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							louse.interval--;
-							if (louse.interval == 0) {
-								man.hp = man.hp - louse.atk + man.armour;
-								louse.interval = 1;
-
-
-							}
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
 
 
 						}
-							
-							
-						
-						
 
 					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
-
-
-							}
-
-						}
 
 
 
-					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
-
-
-							}
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						if (boss.hp <= 0)man.money = man.money + boss.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-
-						}
-
-
-
-					}
 				}
-				else if (strike.valid == 0 && man.mana > 0)printf("You have used the strike!\n");
-				else if (man.mana <= 0) {
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0)man.money = man.money + boss.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
 
-					printf("You have no mana!\n");
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
+
+					}
+
+
+
 				}
 
 			}
-			else if (keycode == ALLEGRO_KEY_ESCAPE) {
-				
-				
-				printf("You can't escape from battle!\n");
-			}	
-        
+			else if (ironwave.valid == 0 && man.mana > 0)printf("You have used the ironwave!\n");
+			else if (man.mana <= 0) {
+
+				printf("You have no mana!\n");
+			}
+
+
+
+		}
+		else if (keycode == ALLEGRO_KEY_5) {
+			if (man.mana > 0 && strike.valid == 1) {
+				strike.valid = 0;
+				man.mana = man.mana - strike.cost;
+				man.atk = strike.damage;
+				printf("Use strike!");
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0)man.money = man.money + louse.money;
+					if (man.mana <= 0) {
+
+						turn++;
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+						louse.interval--;
+						if (louse.interval == 0) {
+							man.hp = man.hp - louse.atk + man.armour;
+							louse.interval = 1;
+
+
+						}
+
+
+					}
+
+
+
+
+
+				}
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0)man.money = man.money + cultist.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0)man.money = man.money + chosen.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0)man.money = man.money + boss.money;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						bash.valid = 1;
+						cleave.valid = 1;
+						defend.valid = 1;
+						ironwave.valid = 1;
+						strike.valid = 1;
+
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
+
+					}
+
+
+
+				}
+			}
+			else if (strike.valid == 0 && man.mana > 0)printf("You have used the strike!\n");
+			else if (man.mana <= 0) {
+
+				printf("You have no mana!\n");
+			}
+
+		}
+		else if (keycode == ALLEGRO_KEY_ESCAPE) {
+
+
+			printf("You can't escape from battle!\n");
+		}
+
+	}
+	else if (judge_next_window == 3) {
+		if (map_start == 0) {
+			switch (keycode) {
+			case ALLEGRO_KEY_1:
+				map_start = 1;
+				node = 1;
+				character1.x =
+				break;
+			case ALLEGRO_KEY_2:
+				map_start = 1;
+				node = 2;
+				break;
+			case ALLEGRO_KEY_3:
+				map_start = 1;
+				node = 3;
+				break;
+			case ALLEGRO_KEY_4:
+				map_start = 1;
+				node = 4;
+				break;
+			}
+		}
+		else {
+			switch (keycode) {
+			case ALLEGRO_KEY_1:
+				if (node == 1) {
+
+					character1.y -= 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				else if()
+				break;
+			case ALLEGRO_KEY_2:
+				if (character1.y < HEIGHT - 100) {
+					character1.y += 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+			case ALLEGRO_KEY_3:
+				if (character1.x > 0) {
+					character1.x -= 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+
+			case ALLEGRO_KEY_X:
+				menu_run();
+			}
+		}
 	}
 }
 
 
-void event_window(){
+void event_window() {
+	if (judge_next_window == 1) {
+		if (window == 2) {//in the village
+			if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
+				window = 3;
+				//al_draw_bitmap(INN_bg, 0, 0, 0);
+				al_stop_sample(&village_bgm_id);
+				//al_destroy_sample(village_bgm);
+				if (!al_play_sample(INN_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &INN_bgm_id))
+					game_abort("INN_bgm sample plays error.\n");
+				character1.x = WIDTH / 2 - 25;
+				character1.y = 800 - 25;
+				printf("In INN:\n");
+			}
+			else if (character1.x == 300 - 200 && character1.y == HEIGHT - 150 - 75) {//walk into grocery store
+				window = 4;
+				//al_draw_bitmap(grocerystore_bg, 0, 0, 0);
+				al_stop_sample(&village_bgm_id);
+				//al_destroy_sample(village_bgm);
+				al_play_sample(grocerystore_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &grocerystore_bgm_id);
+				character1.x = 675;
+				character1.y = 800 - 275;
+				printf("In grocery store:\n");
+			}
+			else if (character1.x == 300 && character1.y == HEIGHT - 100) {//into main map************
+				judge_next_window = 3;
+				window = 1;
+				al_stop_sample(&village_bgm_id);
+			}
 
-	if (window == 2) {//in the village
-		if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
-			window = 3;
-			//al_draw_bitmap(INN_bg, 0, 0, 0);
-			al_stop_sample(&village_bgm_id);
-			//al_destroy_sample(village_bgm);
-			if (!al_play_sample(INN_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &INN_bgm_id))
-				game_abort("INN_bgm sample plays error.\n");
-			character1.x = WIDTH / 2 - 25;
-			character1.y = 800 - 25;
-			printf("In INN:\n");
-		}
-		else if (character1.x == 300 - 200 && character1.y == HEIGHT - 150 - 75) {//walk into grocery store
-			window = 4;
-			//al_draw_bitmap(grocerystore_bg, 0, 0, 0);
-			al_stop_sample(&village_bgm_id);
-			//al_destroy_sample(village_bgm);
-			al_play_sample(grocerystore_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &grocerystore_bgm_id);
-			character1.x = 675;
-			character1.y = 800 - 275;
-			printf("In grocery store:\n");
-		}
-		else if (character1.x == 300 && character1.y == HEIGHT - 100) {
-			judge_next_window = 2;
-			window = 1;
-			al_stop_sample(&village_bgm_id);
-		}
-		
 
 
-		//else if...
-	}
-	else if (window == 3) {
-		if (character1.x == WIDTH / 2 - 25 && character1.y == 800) {//from INN back to village
-			window = 2;
-			//al_draw_bitmap(village_bg, 0, 0, 0);
-			al_stop_sample(&INN_bgm_id);
-			//al_destroy_sample(INN_bgm);
-			al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
-			character1.x = 300;
-			character1.y = HEIGHT - 150 - 50;
-			printf("In village:\n");
+			//else if...
+		}
+		else if (window == 3) {
+			if (character1.x == WIDTH / 2 - 25 && character1.y == 800) {//from INN back to village
+				window = 2;
+				//al_draw_bitmap(village_bg, 0, 0, 0);
+				al_stop_sample(&INN_bgm_id);
+				//al_destroy_sample(INN_bgm);
+				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
+				character1.x = 300;
+				character1.y = HEIGHT - 150 - 50;
+				printf("In village:\n");
+			}
+
+			else if ((character1.x == 650 || character1.x == 675) && character1.y == 175) //INN 2nd floor
+				pop_up_window = true;
+			else if (character1.x == 425 && character1.y == 175)//fire place
+				pop_up_window = true;
+			else if (character1.x == 525 && character1.y == 375)//host
+				pop_up_window = true;
+		}
+		else if (window == 4) {
+			if (character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
+				window = 2;
+				//al_draw_bitmap(village_bg, 0, 0, 0);
+				al_stop_sample(&grocerystore_bgm_id);
+				//al_destroy_sample(grocerystore_bgm);
+				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
+				character1.x = 300 - 200;
+				character1.y = HEIGHT - 150 - 50;
+				printf("In village:\n");
+			}
+
+			else if (character1.x == 675 && character1.y == 300)
+				pop_up_window = true;
+			/*else if ((character1.x == 325 && character1.y == 350) || (character1.x == 350 && character1.y == 400)
+				|| (character1.x == 350 && character1.y == 375) || (character1.x == 325 && character1.y == 400)) {
+				pop_up_window = true;
+			}*/
 		}
 
-		else if ((character1.x == 650 || character1.x == 675) && character1.y == 175) //INN 2nd floor
-			pop_up_window = true;
-		else if (character1.x == 425 && character1.y == 175)//fire place
-			pop_up_window = true;
-		else if (character1.x == 525 && character1.y == 375)//host
-			pop_up_window = true;
-	}
-	else if (window == 4) {
-		if (character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
-			window = 2;
-			//al_draw_bitmap(village_bg, 0, 0, 0);
-			al_stop_sample(&grocerystore_bgm_id);
-			//al_destroy_sample(grocerystore_bgm);
-			al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
-			character1.x = 300 - 200;
-			character1.y = HEIGHT - 150 - 50;
-			printf("In village:\n");
-		}
+		/*else if (window == 5) {
+			background = al_load_bitmap("map_village_bar.png");
 
-		else if (character1.x == 675 && character1.y == 300)
-			pop_up_window = true;
-		/*else if ((character1.x == 325 && character1.y == 350) || (character1.x == 350 && character1.y == 400)
-			|| (character1.x == 350 && character1.y == 375) || (character1.x == 325 && character1.y == 400)) {
-			pop_up_window = true;
+		}
+		else if (window == 6) {
+			background = al_load_bitmap("map_village_defensewearstore.png");
+
+		}
+		else if (window == 7) {
+			background = al_load_bitmap("map_village_weaponstore.png");
+
+		}
+		else if (window == 8) {
+			background = al_load_bitmap("map_village_specialhouse.png");
+
 		}*/
 	}
-
-	/*else if (window == 5) {
-		background = al_load_bitmap("map_village_bar.png");
-
+	
+	if (judge_next_window == 3) {//main map
+		
 	}
-	else if (window == 6) {
-		background = al_load_bitmap("map_village_defensewearstore.png");
-
-	}
-	else if (window == 7) {
-		background = al_load_bitmap("map_village_weaponstore.png");
-
-	}
-	else if (window == 8) {
-		background = al_load_bitmap("map_village_specialhouse.png");
-
-	}*/
-
 
 }
 
@@ -1503,7 +1566,7 @@ int game_run() {
 				timer = al_create_timer(1.0 / 15.0);
 				timer2 = al_create_timer(1.0);
 				timer3 = al_create_timer(1.0 / 10.0);
-				
+
 				al_register_event_source(event_queue, al_get_timer_event_source(timer));
 				al_register_event_source(event_queue, al_get_timer_event_source(timer2));
 				al_register_event_source(event_queue, al_get_timer_event_source(timer3));
@@ -1514,7 +1577,7 @@ int game_run() {
 		}
 	}
 	// Second window(Main Game)
-	if(judge_next_window == 1){
+	if (judge_next_window == 1) {
 		if (window > 1) {
 			// Change Image for animation
 			if (window == 2) {
@@ -1984,21 +2047,21 @@ int game_run() {
 		if (judge_next_window == 2) {
 			while (window == 1) {
 				//printf("in game_run window judge_next_window == 2\n");
-				
+
 
 
 
 
 				// draw the battlefield and indicate the turn
-			    al_draw_bitmap(Board, 0, 0, 0);
+				al_draw_bitmap(Board, 0, 0, 0);
 				if (stage == 4) {
 					al_draw_bitmap(Bossroom, 0, 0, 0);
 				}
-					
-				if(stage!=4)al_draw_bitmap(backgroud, 0, 0, 0);
-                al_draw_rectangle(3, 429,897, 897,al_map_rgb(255, 255, 255), 6);
+
+				if (stage != 4)al_draw_bitmap(backgroud, 0, 0, 0);
+				al_draw_rectangle(3, 429, 897, 897, al_map_rgb(255, 255, 255), 6);
 				al_draw_rectangle(3, 690, 897, 897, al_map_rgb(255, 255, 255), 6);
-                al_draw_rectangle(770, 0, 899, 429, al_map_rgb(255, 255, 255), 2);
+				al_draw_rectangle(770, 0, 899, 429, al_map_rgb(255, 255, 255), 2);
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 10,
 					ALLEGRO_ALIGN_CENTER, "System");
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 40,
@@ -2007,8 +2070,8 @@ int game_run() {
 					ALLEGRO_ALIGN_CENTER, "money:%d", man.money);
 
 				//draw the monster 
-				if (stage == 1&&louse.hp>0) {
-				
+				if (stage == 1 && louse.hp > 0) {
+
 					al_draw_bitmap(Louse, 390, 250, 0);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
 						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
@@ -2018,12 +2081,12 @@ int game_run() {
 						ALLEGRO_ALIGN_CENTER, "Attack:%d", louse.atk);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
 						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", louse.interval);
-					
-				}
-				
 
-				if (stage == 2&&cultist.hp>0) {
-                    al_draw_bitmap(Cultist, 390, 150, 0);
+				}
+
+
+				if (stage == 2 && cultist.hp > 0) {
+					al_draw_bitmap(Cultist, 390, 150, 0);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
 						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
@@ -2033,8 +2096,8 @@ int game_run() {
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
 						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", cultist.interval);
 				}
-				 
-				if (stage == 3&&chosen.hp>0) {
+
+				if (stage == 3 && chosen.hp > 0) {
 					al_draw_bitmap(Chosen, 390, 150, 0);
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
 						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
@@ -2076,18 +2139,18 @@ int game_run() {
 						ALLEGRO_ALIGN_CENTER, "You died.");
 					printf("You died.\n");
 				}
-					
-				
-				
-				
+
+
+
+
 
 				if (bash.valid != 0)  al_draw_bitmap(Bash, 0, 430, 0);
-				if (cleave.valid != 0 )  al_draw_bitmap(Cleave, 175, 430, 0);
+				if (cleave.valid != 0)  al_draw_bitmap(Cleave, 175, 430, 0);
 				if (defend.valid != 0)  al_draw_bitmap(Defend, 350, 430, 0);
-				if (ironwave.valid != 0 )  al_draw_bitmap(Ironwave, 525, 430, 0);
-				if (strike.valid != 0  )   al_draw_bitmap(Strike, 700, 430, 0);
+				if (ironwave.valid != 0)  al_draw_bitmap(Ironwave, 525, 430, 0);
+				if (strike.valid != 0)   al_draw_bitmap(Strike, 700, 430, 0);
 
-				
+
 
 
 				//printf("al_flip_display in  judge_next_window == 2\n");
@@ -2097,7 +2160,28 @@ int game_run() {
 					break;
 			}
 		}
+
 		
+			
+	}
+
+	if (judge_next_window == 3) {
+		character1.image_path = al_load_bitmap("tower.png");
+		character1.x = WIDTH / 2 - 25;
+		character1.y = 800 - 25;
+		while (judge_next_window == 3) {
+			al_draw_filled_rectangle(0, 0, 900, 900, al_map_rgb(160, 82, 45));
+			al_draw_bitmap(main_map, 320, 0, 0);
+			
+
+
+			al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+			al_flip_display();
+			error = process_event();
+
+			if (judge_next_window != 3)
+				break;
+		}
 	}
 	return error;
 }
@@ -2114,7 +2198,7 @@ void game_destroy() {
 	//al_destroy_sample(song);
 }
 
-bool check_boundary(int x, int y) 
+bool check_boundary(int x, int y)
 {
 	if (window == 2) {
 		if (x == 100 && y == 675)
