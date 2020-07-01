@@ -797,11 +797,7 @@ void event_window(){
 		background = al_load_bitmap("map_village_specialhouse.png");
 
 	}*/
-	else if (judge_next_window == 2) {
-		if (window == 1) {
-			
-		}
-	}
+
 
 }
 
@@ -1337,7 +1333,10 @@ int game_run() {
 				//   al_draw_bitmap(Cultist,390,150,0);
 
 
-				if (key1 == true)  al_draw_bitmap(Bash, 0, 430, 0);
+				if (key1 == true) {
+					al_draw_bitmap(Bash, 0, 430, 0);
+
+				}
 				if (key2 == true)  al_draw_bitmap(Cleave, 200, 430, 0);
 				if (key3 == true)  al_draw_bitmap(Defend, 400, 430, 0);
 				if (key4 == true)  al_draw_bitmap(Ironwave, 600, 430, 0);
