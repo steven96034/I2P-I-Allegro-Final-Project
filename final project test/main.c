@@ -837,7 +837,13 @@ void on_key_down(int keycode) {
 					if (stage == 1) {
 					  if(man.buff>=1)man.buff--;
 						louse.hp = louse.hp - man.atk-man.buff*man.atk;
-						if (louse.hp <= 0)man.money = man.money + louse.money;
+						if (louse.hp <= 0) {
+							man.money = man.money + louse.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -865,7 +871,13 @@ void on_key_down(int keycode) {
 					if (stage == 2) {
 						if (man.buff >= 1)man.buff--;
 						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
+						if (cultist.hp <= 0) {
+							man.money = man.money + cultist.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -894,7 +906,13 @@ void on_key_down(int keycode) {
 					if (stage == 3) {
 						if (man.buff >= 1)man.buff--;
 						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
+						if (chosen.hp <= 0) {
+							man.money = man.money + chosen.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -923,7 +941,12 @@ void on_key_down(int keycode) {
 					if (stage == 4) {
 						if (man.buff >= 1)man.buff--;
 						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						if (boss.hp <= 0)man.money = man.money + boss.money;
+						if (boss.hp <= 0) {
+							man.money = man.money + boss.money;
+							judge_next_window = 3;
+							window = 1;
+							//win
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -974,7 +997,13 @@ void on_key_down(int keycode) {
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
 						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						if (louse.hp <= 0)man.money = man.money + louse.money;
+						if (louse.hp <= 0) {
+							man.money = man.money + louse.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
                         
 						turn++;
@@ -1001,7 +1030,13 @@ void on_key_down(int keycode) {
 					if (stage == 2) {
 						if (man.buff >= 1)man.buff--;
 						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
+						if (cultist.hp <= 0) {
+							man.money = man.money + cultist.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1029,7 +1064,13 @@ void on_key_down(int keycode) {
 					if (stage == 3) {
 						if (man.buff >= 1)man.buff--;
 						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
+						if (chosen.hp <= 0) {
+							man.money = man.money + chosen.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1057,7 +1098,12 @@ void on_key_down(int keycode) {
 					if (stage == 4) {
 						if (man.buff >= 1)man.buff--;
 						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						if (boss.hp <= 0)man.money = man.money + boss.money;
+						if (boss.hp <= 0) {
+							man.money = man.money + boss.money;
+							judge_next_window = 3;
+							window = 1;
+							//win scene
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1222,7 +1268,13 @@ void on_key_down(int keycode) {
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
 						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						if (louse.hp <= 0)man.money = man.money + louse.money;
+						if (louse.hp <= 0) {
+							man.money = man.money + louse.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 						 
 							turn++;
@@ -1250,7 +1302,13 @@ void on_key_down(int keycode) {
 					if (stage == 2) {
 						if (man.buff >= 1)man.buff--;
 						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
+						if (cultist.hp <= 0) {
+							man.money = man.money + cultist.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1266,8 +1324,6 @@ void on_key_down(int keycode) {
 							if (cultist.interval == 0) {
 								man.hp = man.hp - cultist.atk + man.armour;
 								cultist.interval = 2;
-
-
 							}
 
 						}
@@ -1278,7 +1334,13 @@ void on_key_down(int keycode) {
 					if (stage == 3) {
 						if (man.buff >= 1)man.buff--;
 						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
+						if (chosen.hp <= 0) {
+							man.money = man.money + chosen.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1306,7 +1368,12 @@ void on_key_down(int keycode) {
 					if (stage == 4) {
 						if (man.buff >= 1)man.buff--;
 						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						if (boss.hp <= 0)man.money = man.money + boss.money;
+						if (boss.hp <= 0){
+							man.money = man.money + boss.money;
+							judge_next_window = 3;
+							window = 1;
+							//win scene
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1352,7 +1419,13 @@ void on_key_down(int keycode) {
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
 						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						if (louse.hp <= 0)man.money = man.money + louse.money;
+						if (louse.hp <= 0) {
+							man.money = man.money + louse.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
                            
 							turn++;
@@ -1383,7 +1456,13 @@ void on_key_down(int keycode) {
 					if (stage == 2) {
 						if (man.buff >= 1)man.buff--;
 						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
+						if (cultist.hp <= 0) {
+							man.money = man.money + cultist.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1411,7 +1490,13 @@ void on_key_down(int keycode) {
 					if (stage == 3) {
 						if (man.buff >= 1)man.buff--;
 						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
+						if (chosen.hp <= 0) {
+							man.money = man.money + chosen.money;
+							judge_next_window = 3;
+							window = 0;
+							character1.x = 425;
+							character1.y = 800;
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1439,7 +1524,13 @@ void on_key_down(int keycode) {
 					if (stage == 4) {
 						if (man.buff >= 1)man.buff--;
 						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						if (boss.hp <= 0)man.money = man.money + boss.money;
+						if (boss.hp <= 0) {
+							man.money = man.money + boss.money;
+							judge_next_window = 3;
+							window = 1;//win scene
+
+							//////////
+						}
 						if (man.mana <= 0) {
 							man.mana = 4;
 							man.armour = 0;
@@ -1613,18 +1704,21 @@ void event_window(){
 	else if (judge_next_window == 3) {
 		if (window == 0) {
 			if (character1.y == -25) {
-				int x = random;//random monster
+				int x = random();//random monster
 				if (x >= 1 && x <= 5) {
 					judge_next_window = 2;
+					window = 1;
 					stage = 1;
 
 				}
 				else if (x > 5 && x <= 10) {
 					judge_next_window = 2;
+					window = 1;
 					stage = 2;
 				}
 				else if (x > 10 && x < 15) {
 					judge_next_window = 2;
+					window = 1;
 					stage = 3;
 				}
 				else if (x > 15 && x <= 20) {
@@ -2140,167 +2234,173 @@ int game_run() {
 				error = process_event();
 			}
 		}
-
-
-
-		//battle
-		if (judge_next_window == 2) {
-			while (window == 1) {
-				//printf("in game_run window judge_next_window == 2\n");
-				
+	}
+	//battle
+	if (judge_next_window == 2) {
+		while (window == 1) {
+			//printf("in game_run window judge_next_window == 2\n");
 
 
 
 
-				// draw the battlefield and indicate the turn
-			    al_draw_bitmap(Board, 0, 0, 0);
-				if (stage == 4) {
-					al_draw_bitmap(Bossroom, 0, 0, 0);
-				}
-					
-				if(stage!=4)al_draw_bitmap(backgroud, 0, 0, 0);
-                al_draw_rectangle(3, 429,897, 897,al_map_rgb(255, 255, 255), 6);
-				al_draw_rectangle(3, 690, 897, 897, al_map_rgb(255, 255, 255), 6);
-                al_draw_rectangle(770, 0, 899, 429, al_map_rgb(255, 255, 255), 2);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 10,
-					ALLEGRO_ALIGN_CENTER, "System");
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 40,
-					ALLEGRO_ALIGN_CENTER, "turn:%d", turn);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 830, 200,
-					ALLEGRO_ALIGN_CENTER, "money:%d", man.money);
 
-				//draw the monster 
-				if (stage == 1&&louse.hp>0) {
-				
-					al_draw_bitmap(Louse, 390, 250, 0);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
-						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
-						ALLEGRO_ALIGN_CENTER, "Hp:%d", louse.hp);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
-						ALLEGRO_ALIGN_CENTER, "Attack:%d", louse.atk);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
-						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", louse.interval);
-					
-				}
-				
-
-				if (stage == 2&&cultist.hp>0) {
-                    al_draw_bitmap(Cultist, 390, 150, 0);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
-						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
-						ALLEGRO_ALIGN_CENTER, "Hp:%d", cultist.hp);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
-						ALLEGRO_ALIGN_CENTER, "Attack:%d", cultist.atk);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
-						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", cultist.interval);
-				}
-				 
-				if (stage == 3&&chosen.hp>0) {
-					al_draw_bitmap(Chosen, 390, 150, 0);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
-						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
-						ALLEGRO_ALIGN_CENTER, "Hp:%d", chosen.hp);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
-						ALLEGRO_ALIGN_CENTER, "Attack:%d", chosen.atk);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
-						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", chosen.interval);
-
-				}
-				if (stage == 4 && boss.hp > 0) {
-					al_draw_bitmap(Boss, 390, 100, 0);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
-						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
-						ALLEGRO_ALIGN_CENTER, "Hp:%d", boss.hp);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
-						ALLEGRO_ALIGN_CENTER, "Attack:%d", boss.atk);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
-						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", boss.interval);
-
-				}
-
-
-
-				// draw the hero and the indicate the data of hero
-				al_draw_bitmap(hero, 0, 150, 0);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 100,
-					ALLEGRO_ALIGN_CENTER, "Hp:%d", man.hp);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 150,
-					ALLEGRO_ALIGN_CENTER, "Attack:%d", man.atk);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 200,
-					ALLEGRO_ALIGN_CENTER, "armour:%d", man.armour);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 250,
-					ALLEGRO_ALIGN_CENTER, "mana:%d", man.mana);
-				if (man.hp <= 0) {
-					al_draw_text(font, al_map_rgb(255, 255, 255), 815, 300,
-						ALLEGRO_ALIGN_CENTER, "You died.");
-					printf("You died.\n");
-				}
-				if (card1.valid != 0) {
-                     if(card1.index==1)al_draw_bitmap(Bash, 0, 430, 0);
-					 if(card1.index==2)al_draw_bitmap(Cleave, 0, 430, 0);
-					 if(card1.index==3)al_draw_bitmap(Defend, 0, 430, 0);
-					 if (card1.index == 4) al_draw_bitmap(Ironwave,0, 430, 0);
-					 if (card1.index == 5)al_draw_bitmap(Strike,0, 430, 0);
-
-				}
-					
-				if (card2.valid != 0) {
-					if (card2.index == 1)al_draw_bitmap(Bash, 175, 430, 0);
-					if (card2.index == 2)al_draw_bitmap(Cleave, 175, 430, 0);
-					if (card2.index == 3)al_draw_bitmap(Defend, 175, 430, 0);
-					if (card2.index == 4) al_draw_bitmap(Ironwave, 175, 430, 0);
-					if (card2.index == 5)al_draw_bitmap(Strike, 175, 430, 0);
-
-				}
-					
-				if (card3.valid != 0) {
-					if (card3.index == 1)al_draw_bitmap(Bash, 350, 430, 0);
-					if (card3.index == 2)al_draw_bitmap(Cleave, 350, 430, 0);
-					if (card3.index == 3)al_draw_bitmap(Defend, 350, 430, 0);
-					if (card3.index == 4) al_draw_bitmap(Ironwave, 350, 430, 0);
-					if (card3.index == 5)al_draw_bitmap(Strike, 350, 430, 0);
-
-				}
-					
-				if (card4.valid != 0) {
-					if (card4.index == 1)al_draw_bitmap(Bash, 525, 430, 0);
-					if (card4.index == 2)al_draw_bitmap(Cleave, 525, 430, 0);
-					if (card4.index == 3)al_draw_bitmap(Defend, 525, 430, 0);
-					if (card4.index == 4) al_draw_bitmap(Ironwave, 525, 430, 0);
-					if (card4.index == 5)al_draw_bitmap(Strike, 525, 430, 0);
-
-
-				}
-					
-				if (card5.valid != 0) {
-					if (card5.index == 1)al_draw_bitmap(Bash, 700, 430, 0);
-					if (card5.index == 2)al_draw_bitmap(Cleave, 700, 430, 0);
-					if (card5.index == 3)al_draw_bitmap(Defend, 700, 430, 0);
-					if (card5.index == 4) al_draw_bitmap(Ironwave, 700, 430, 0);
-					if (card5.index == 5)al_draw_bitmap(Strike, 700, 430, 0);
-
-
-				}
-					
-				
-				
-				
-
-				//printf("al_flip_display in  judge_next_window == 2\n");
-				al_flip_display();
-				error = process_event();
-				if (judge_next_window != 2)
-					break;
+			// draw the battlefield and indicate the turn
+			al_draw_bitmap(Board, 0, 0, 0);
+			if (stage == 4) {
+				al_draw_bitmap(Bossroom, 0, 0, 0);
 			}
+
+			if (stage != 4)al_draw_bitmap(backgroud, 0, 0, 0);
+			al_draw_rectangle(3, 429, 897, 897, al_map_rgb(255, 255, 255), 6);
+			al_draw_rectangle(3, 690, 897, 897, al_map_rgb(255, 255, 255), 6);
+			al_draw_rectangle(770, 0, 899, 429, al_map_rgb(255, 255, 255), 2);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 10,
+				ALLEGRO_ALIGN_CENTER, "System");
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 40,
+				ALLEGRO_ALIGN_CENTER, "turn:%d", turn);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 830, 200,
+				ALLEGRO_ALIGN_CENTER, "money:%d", man.money);
+
+			//draw the monster 
+			if (stage == 1 && louse.hp > 0) {
+
+				al_draw_bitmap(Louse, 390, 250, 0);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
+					ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
+					ALLEGRO_ALIGN_CENTER, "Hp:%d", louse.hp);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
+					ALLEGRO_ALIGN_CENTER, "Attack:%d", louse.atk);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
+					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", louse.interval);
+
+			}
+
+
+			if (stage == 2 && cultist.hp > 0) {
+				al_draw_bitmap(Cultist, 390, 150, 0);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
+					ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
+					ALLEGRO_ALIGN_CENTER, "Hp:%d", cultist.hp);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
+					ALLEGRO_ALIGN_CENTER, "Attack:%d", cultist.atk);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
+					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", cultist.interval);
+			}
+
+			if (stage == 3 && chosen.hp > 0) {
+				al_draw_bitmap(Chosen, 390, 150, 0);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
+					ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
+					ALLEGRO_ALIGN_CENTER, "Hp:%d", chosen.hp);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
+					ALLEGRO_ALIGN_CENTER, "Attack:%d", chosen.atk);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
+					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", chosen.interval);
+
+			}
+			if (stage == 4 && boss.hp > 0) {
+				al_draw_bitmap(Boss, 390, 100, 0);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
+					ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
+					ALLEGRO_ALIGN_CENTER, "Hp:%d", boss.hp);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
+					ALLEGRO_ALIGN_CENTER, "Attack:%d", boss.atk);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
+					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", boss.interval);
+
+			}
+
+
+
+			// draw the hero and the indicate the data of hero
+			al_draw_bitmap(hero, 0, 150, 0);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 100,
+				ALLEGRO_ALIGN_CENTER, "Hp:%d", man.hp);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 150,
+				ALLEGRO_ALIGN_CENTER, "Attack:%d", man.atk);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 200,
+				ALLEGRO_ALIGN_CENTER, "armour:%d", man.armour);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 250,
+				ALLEGRO_ALIGN_CENTER, "mana:%d", man.mana);
+			if (man.hp <= 0) {
+				al_draw_text(font, al_map_rgb(255, 255, 255), 815, 300,
+					ALLEGRO_ALIGN_CENTER, "You died.");
+				printf("You died.\n");
+			}
+			if (card1.valid != 0) {
+				if (card1.index == 1)al_draw_bitmap(Bash, 0, 430, 0);
+				if (card1.index == 2)al_draw_bitmap(Cleave, 0, 430, 0);
+				if (card1.index == 3)al_draw_bitmap(Defend, 0, 430, 0);
+				if (card1.index == 4) al_draw_bitmap(Ironwave, 0, 430, 0);
+				if (card1.index == 5)al_draw_bitmap(Strike, 0, 430, 0);
+
+			}
+
+			if (card2.valid != 0) {
+				if (card2.index == 1)al_draw_bitmap(Bash, 175, 430, 0);
+				if (card2.index == 2)al_draw_bitmap(Cleave, 175, 430, 0);
+				if (card2.index == 3)al_draw_bitmap(Defend, 175, 430, 0);
+				if (card2.index == 4) al_draw_bitmap(Ironwave, 175, 430, 0);
+				if (card2.index == 5)al_draw_bitmap(Strike, 175, 430, 0);
+
+			}
+
+			if (card3.valid != 0) {
+				if (card3.index == 1)al_draw_bitmap(Bash, 350, 430, 0);
+				if (card3.index == 2)al_draw_bitmap(Cleave, 350, 430, 0);
+				if (card3.index == 3)al_draw_bitmap(Defend, 350, 430, 0);
+				if (card3.index == 4) al_draw_bitmap(Ironwave, 350, 430, 0);
+				if (card3.index == 5)al_draw_bitmap(Strike, 350, 430, 0);
+
+			}
+
+			if (card4.valid != 0) {
+				if (card4.index == 1)al_draw_bitmap(Bash, 525, 430, 0);
+				if (card4.index == 2)al_draw_bitmap(Cleave, 525, 430, 0);
+				if (card4.index == 3)al_draw_bitmap(Defend, 525, 430, 0);
+				if (card4.index == 4) al_draw_bitmap(Ironwave, 525, 430, 0);
+				if (card4.index == 5)al_draw_bitmap(Strike, 525, 430, 0);
+
+
+			}
+
+			if (card5.valid != 0) {
+				if (card5.index == 1)al_draw_bitmap(Bash, 700, 430, 0);
+				if (card5.index == 2)al_draw_bitmap(Cleave, 700, 430, 0);
+				if (card5.index == 3)al_draw_bitmap(Defend, 700, 430, 0);
+				if (card5.index == 4) al_draw_bitmap(Ironwave, 700, 430, 0);
+				if (card5.index == 5)al_draw_bitmap(Strike, 700, 430, 0);
+
+
+			}
+
+			//printf("al_flip_display in  judge_next_window == 2\n");
+			al_flip_display();
+			error = process_event();
+			if (judge_next_window != 2)
+				break;
 		}
-		
+	}
+
+	if (judge_next_window == 3) {
+		while (window == 0) {
+			al_draw_bitmap(dungeon_map, 0, 0, 0);
+			al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+
+			al_flip_display();
+			error = process_event();
+			if (judge_next_window != 3)
+				break;
+		}
 	}
 	return error;
 }
+
+
 
 void game_destroy() {
 	// Make sure you destroy all things
@@ -2314,138 +2414,154 @@ void game_destroy() {
 	//al_destroy_sample(song);
 }
 
-bool check_boundary(int x, int y) 
+bool check_boundary(int x, int y)
 {
-	if (window == 2) {
-		if (x == 100 && y == 675)
-			return true;
-		else if (x >= 100 && x <= 500 && y == 700)
-			return true;
-		else if (x == 500 && y >= 625 && y <= 675)
-			return true;
-		else if (x == 300 && y == 675)
-			return true;
-		else if (x == 175 && y >= 500 && y <= 675)
-			return true;
-		else if (x >= 50 && x <= 425 && y == 475)
-			return true;
-		else if (x == 375 && y == 450)
-			return true;
-		else if (x == 250 && y == 450)
-			return true;
-		else if (x >= 125 && x <= 150 && y >= 400 && y <= 450)
-			return true;
-		else if (x >= 150 && x <= 175 && y == 375)
-			return true;
-		else if (x == 100 && y == 400)
-			return true;
-		else if (x == 75 && y == 400)
-			return true;
-		else if (x == 75 && y == 425)
-			return true;
-		else if (x == 150 && y == 350)
-			return true;
-		else if (x == 425 && y >= 175 && y <= 675)
-			return true;
-		else if (x >= 175 && x <= 400 && y == 175)
-			return true;
-		else if (x >= 450 && x <= 700 && y == 400)
-			return true;
-		else if (x >= 725 && x <= 800 && y >= 375 && y <= 425)
-			return true;
-		else if (x >= 725 && x <= 750 && y == 450)
-			return true;
-		else if (x == 725 && y == 475)
-			return true;
-		else if (x == 700 && y >= 475 && y <= 625)
-			return true;
-		else if (x >= 725 && x <= 800 && y >= 600 && y <= 675)
-			return true;
-		else if (x == 800 && y >= 525 && y <= 575)
-			return true;
-		else if (x == 775 && y >= 550 && y <= 575)
-			return true;
-		else if (x == 800 && y >= 75 && y <= 350)
-			return true;
-		else if (x == 775 && y >= 100 && y <= 125)
-			return true;
-		else if (x >= 750 && x <= 775 && y >= 200 && y <= 300)
-			return true;
-		else if (x == 300 && y >= 725 && y <= 800)
-			return true;
-		else
-			return false;
+	if (judge_next_window == 1) {
+		if (window == 2) {
+			if (x == 100 && y == 675)
+				return true;
+			else if (x >= 100 && x <= 500 && y == 700)
+				return true;
+			else if (x == 500 && y >= 625 && y <= 675)
+				return true;
+			else if (x == 300 && y == 675)
+				return true;
+			else if (x == 175 && y >= 500 && y <= 675)
+				return true;
+			else if (x >= 50 && x <= 425 && y == 475)
+				return true;
+			else if (x == 375 && y == 450)
+				return true;
+			else if (x == 250 && y == 450)
+				return true;
+			else if (x >= 125 && x <= 150 && y >= 400 && y <= 450)
+				return true;
+			else if (x >= 150 && x <= 175 && y == 375)
+				return true;
+			else if (x == 100 && y == 400)
+				return true;
+			else if (x == 75 && y == 400)
+				return true;
+			else if (x == 75 && y == 425)
+				return true;
+			else if (x == 150 && y == 350)
+				return true;
+			else if (x == 425 && y >= 175 && y <= 675)
+				return true;
+			else if (x >= 175 && x <= 400 && y == 175)
+				return true;
+			else if (x >= 450 && x <= 700 && y == 400)
+				return true;
+			else if (x >= 725 && x <= 800 && y >= 375 && y <= 425)
+				return true;
+			else if (x >= 725 && x <= 750 && y == 450)
+				return true;
+			else if (x == 725 && y == 475)
+				return true;
+			else if (x == 700 && y >= 475 && y <= 625)
+				return true;
+			else if (x >= 725 && x <= 800 && y >= 600 && y <= 675)
+				return true;
+			else if (x == 800 && y >= 525 && y <= 575)
+				return true;
+			else if (x == 775 && y >= 550 && y <= 575)
+				return true;
+			else if (x == 800 && y >= 75 && y <= 350)
+				return true;
+			else if (x == 775 && y >= 100 && y <= 125)
+				return true;
+			else if (x >= 750 && x <= 775 && y >= 200 && y <= 300)
+				return true;
+			else if (x == 300 && y >= 725 && y <= 800)
+				return true;
+			else
+				return false;
+		}
+		if (window == 3) {
+			if (x == 700 && y >= 300 && y <= 600)
+				return true;
+			else if (x >= 650 && x <= 675 && y >= 175 && y <= 650)
+				return true;
+			else if (x >= 575 && x <= 625 && y >= 300 && y <= 650)
+				return true;
+			else if (x == 525 && y >= 375 && y <= 650)
+				return true;
+			else if (x >= 375 && x <= 475 && y >= 375 && y <= 650)
+				return true;
+			else if (x == 425 && y >= 675 && y <= 800)
+				return true;
+			else if (x >= 150 && x <= 350 && y >= 375 && y <= 575)
+				return true;
+			else if (x >= 150 && x <= 325 && y == 600)
+				return true;
+			else if (x >= 175 && x <= 325 && y >= 625 && y <= 650)
+				return true;
+			else if (x == 500 && x >= 375 && y <= 575)
+				return true;
+			else if (x == 550 && y >= 375 && y <= 650)
+				return true;
+			else if (x >= 175 && x <= 500 && y == 275)
+				return true;
+			else if (x >= 325 && x <= 500 && y >= 200 && y <= 275)
+				return true;
+			else if (x == 425 && y == 175)
+				return true;
+			else
+				return false;
+		}
+		else if (window == 4) {
+			if (x == 675 && y >= 425 && y <= 550)
+				return true;
+			else if (x >= 525 && x <= 825 && y >= 300 && y <= 400)
+				return true;
+			else if (x >= 350 && x <= 500 && y == 400)
+				return true;
+			else if (x == 325 && y == 400)
+				return true;
+			else if (x >= 325 && x <= 400 && y >= 425 && y <= 675)
+				return true;
+			else if (x >= 150 && x <= 300 && y == 675)
+				return true;
+			else if (x >= 150 && x <= 300 && y == 450)
+				return true;
+			else if (x >= 50 && x <= 125 && y >= 200 && y <= 675)
+				return true;
+			else if (x >= 150 && x <= 550 && y >= 200 && y <= 250)
+				return true;
+			else if (x == 325 && y >= 275 && y <= 350)
+				return true;
+			else if (x >= 450 && x <= 550 && y >= 150 && y <= 175)
+				return true;
+			else if (x >= 575 && x <= 700 && y == 150)
+				return true;
+			else if (x >= 700 && x <= 825 && y == 200)
+				return true;
+			else if (x == 700 && y == 175)
+				return true;
+			else if (x == 800 && y == 175)
+				return true;
+			else if (x == 825 && y == 175)
+				return true;
+			else if (x >= 150 && x <= 300 && y == 475)
+				return true;
+			else if (x == 525 && y == 275)
+				return true;
+			else if (x == 550 && y == 275)
+				return true;
+			else
+				return false;
+		}
 	}
-	if (window == 3) {
-		if (x == 700 && y >= 300 && y <= 600)
+	if (judge_next_window == 3) {
+		if (x == 425 && y >= -25 && y <= 800)
 			return true;
-		else if (x >= 650 && x <= 675 && y >= 175 && y <= 650)
+		else if (x >= 375 && x <= 475 && y >= 550 && y <= 725)
 			return true;
-		else if (x >= 575 && x <= 625 && y >= 300 && y <= 650)
+		else if (x >= 100 && x <= 750 && y >= 475 && y <= 525)
 			return true;
-		else if (x == 525 && y >= 375 && y <= 650)
+		else if (x == 100 && y >= -25 && y <= 450)
 			return true;
-		else if (x >= 375 && x <= 475 && y >= 375 && y <= 650)
-			return true;
-		else if (x == 425 && y >= 675 && y <= 800)
-			return true;
-		else if (x >= 150 && x <= 350 && y >= 375 && y <= 575)
-			return true;
-		else if (x >= 150 && x <= 325 && y == 600)
-			return true;
-		else if (x >= 175 && x <= 325 && y >= 625 && y <= 650)
-			return true;
-		else if (x == 500 && x >= 375 && y <= 575)
-			return true;
-		else if (x == 550 && y >= 375 && y <= 650)
-			return true;
-		else if (x >= 175 && x <= 500 && y == 275)
-			return true;
-		else if (x >= 325 && x <= 500 && y >= 200 && y <= 275)
-			return true;
-		else if (x == 425 && y == 175)
-			return true;
-		else
-			return false;
-	}
-	else if (window == 4) {
-		if (x == 675 && y >= 425 && y <= 550)
-			return true;
-		else if (x >= 525 && x <= 825 && y >= 300 && y <= 400)
-			return true;
-		else if (x >= 350 && x <= 500 && y == 400)
-			return true;
-		else if (x == 325 && y == 400)
-			return true;
-		else if (x >= 325 && x <= 400 && y >= 425 && y <= 675)
-			return true;
-		else if (x >= 150 && x <= 300 && y == 675)
-			return true;
-		else if (x >= 150 && x <= 300 && y == 450)
-			return true;
-		else if (x >= 50 && x <= 125 && y >= 200 && y <= 675)
-			return true;
-		else if (x >= 150 && x <= 550 && y >= 200 && y <= 250)
-			return true;
-		else if (x == 325 && y >= 275 && y <= 350)
-			return true;
-		else if (x >= 450 && x <= 550 && y >= 150 && y <= 175)
-			return true;
-		else if (x >= 575 && x <= 700 && y == 150)
-			return true;
-		else if (x >= 700 && x <= 825 && y == 200)
-			return true;
-		else if (x == 700 && y == 175)
-			return true;
-		else if (x == 800 && y == 175)
-			return true;
-		else if (x == 825 && y == 175)
-			return true;
-		else if (x >= 150 && x <= 300 && y == 475)
-			return true;
-		else if (x == 525 && y == 275)
-			return true;
-		else if (x == 550 && y == 275)
+		else if (x == 750 && y >= -25 && y <= 450)
 			return true;
 		else
 			return false;
