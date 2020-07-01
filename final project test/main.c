@@ -120,7 +120,7 @@ typedef struct {
 	int damage;
 	int vulnerable;
 	int aoe;
-
+	int index;
 
 }card;
 
@@ -148,6 +148,14 @@ card cleave;
 card  defend;
 card  ironwave;
 card  strike;
+
+//set the random
+card card1;
+card card2;
+card card3;
+card card4;
+card card5;
+
 
 //set the monsters
 mon  louse;           // hp;atk;interval;money;
@@ -402,6 +410,7 @@ void game_set() {
 	bash.damage = 8;
 	bash.vulnerable = 2;
 	bash.aoe = 0;
+	bash.index = 1;
 
 
 	cleave.valid = 1;
@@ -410,6 +419,7 @@ void game_set() {
 	cleave.damage = 8;
 	cleave.vulnerable = 0;
 	cleave.aoe = 1;
+	cleave.index = 2;
 
 
 	defend.valid = 1;
@@ -418,6 +428,7 @@ void game_set() {
 	defend.damage = 0;
 	defend.vulnerable = 0;
 	defend.aoe = 0;
+	defend.index = 3;
 
 
 	ironwave.valid = 1;
@@ -426,6 +437,7 @@ void game_set() {
 	ironwave.damage = 5;
 	ironwave.vulnerable = 0;
 	ironwave.aoe = 0;
+	ironwave.index = 4;
 
 
 	strike.valid = 1;
@@ -434,6 +446,7 @@ void game_set() {
 	strike.damage = 6;
 	strike.vulnerable = 0;
 	strike.aoe = 0;
+	strike.index = 5;
 
 
 	louse.hp = 75;
@@ -466,6 +479,66 @@ void game_set() {
 	man.aoe = 0;
 	man.money = money;
 
+}
+card  shuffle(int x) {
+
+	if (x >= 1 && x <= 3) {
+
+		card y;
+		y = bash;
+		y.index = 1;
+		return y;
+
+
+	}
+		
+		
+	if (x >= 4 && x <= 6) {
+		card y;
+		y = cleave;
+		y.index = 2;
+
+		return y;
+
+	}
+		
+		
+	if (x >= 7 && x <= 11) {
+		card y;
+		y = defend;
+		y.index = 3;
+
+		return y;
+	}
+		
+	if (x >= 12 && x <= 15) {
+		card y;
+		y = ironwave;
+		y.index = 4;
+		return y;
+
+
+	}
+		
+	if (x >= 16 && x <= 20) {
+		card y;
+		y = strike;
+		y.index = 5;
+		return y;
+	}
+		
+
+}
+
+
+
+
+int random(void) {
+	int a;
+	a = (rand() % 20) + 1;
+
+
+	return a;
 }
 
 void game_begin() {
@@ -719,28 +792,40 @@ void on_key_down(int keycode) {
 		}
 	}
 
-
-
-
+	
+	
+	
+	
 
 
 	//battle
 	else if (judge_next_window == 2) {
 	//attack from heros!
+	if (turn==1) {
+		card1 = bash;
+		card2 = cleave;
+		card3 = defend;
+		card4 = ironwave;
+		card5 = strike;
+
+	   }
+	     
+		
 	
 
 	
 			if (keycode == ALLEGRO_KEY_1) {
-				if (man.mana > 1&&bash.valid==1) {
+				
+				if (man.mana - card1.cost >= 0&&card1.valid==1) {
 
-					bash.valid = 0;
-					man.mana = man.mana - bash.cost;
+					card1.valid = 0;
+					man.mana = man.mana - card1.cost;
+					man.armour = card1.armour+man.armour;
+					man.atk = card1.damage;
+					man.buff = card1.vulnerable;
+					
 
-					man.atk = bash.damage;
-					man.buff = 2;
-					man.buff = bash.vulnerable;
-
-					printf("Use bash!\n");
+					printf("Use card1!\n");
 					if (stage == 1) {
 					  if(man.buff>=1)man.buff--;
 						louse.hp = louse.hp - man.atk-man.buff*man.atk;
@@ -749,11 +834,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
                          
 						 turn++;
 						 louse.interval--;
@@ -777,11 +862,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							cultist.interval--;
@@ -806,11 +891,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							chosen.interval--;
@@ -835,11 +920,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							turn++;
 							boss.interval--;
 							if (boss.interval == 0) {
@@ -860,7 +945,7 @@ void on_key_down(int keycode) {
 
 
 				}
-				else if(bash.valid==0&&man.mana>0)printf("You have used the bash!\n");
+				else if(bash.valid==0&&man.mana>0)printf("You have used the card1!\n");
 				else if(man.mana<=0){
 
                 printf("You have no mana!\n");
@@ -869,13 +954,15 @@ void on_key_down(int keycode) {
 					
 			}
 			else if (keycode == ALLEGRO_KEY_2) {
-				if (man.mana > 0&&cleave.valid==1) {
-					cleave.valid = 0;
-					man.mana = man.mana - cleave.cost;
-					man.atk = cleave.damage;
-					man.aoe = cleave.aoe;
+				if (man.mana - card2.cost >= 0 &&card2.valid==1) {
 
-					printf("Use cleave!\n");
+					card2.valid = 0;
+					man.mana = man.mana - card2.cost;
+					man.armour = card2.armour + man.armour;
+					man.atk = card2.damage;
+					man.buff = card2.vulnerable;
+
+					printf("Use card2!\n");
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
 						louse.hp = louse.hp - man.atk - man.buff*man.atk;
@@ -886,11 +973,11 @@ void on_key_down(int keycode) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
-						bash.valid = 1;
-						cleave.valid = 1;
-						defend.valid = 1;
-						ironwave.valid = 1;
-						strike.valid = 1;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
 						louse.interval--;
 						if (louse.interval == 0) {
 							man.hp = man.hp - louse.atk + man.armour;
@@ -911,11 +998,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							cultist.interval--;
@@ -939,11 +1026,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							chosen.interval--;
@@ -967,11 +1054,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							boss.interval--;
@@ -989,7 +1076,7 @@ void on_key_down(int keycode) {
 
 					}
 				}
-				else if (cleave.valid == 0 && man.mana > 0)printf("You have used the cleave!\n");
+				else if (cleave.valid == 0 && man.mana > 0)printf("You have used the card2!\n");
 				else if ( man.mana <= 0) {
 
 					printf("You have no mana!\n");
@@ -997,11 +1084,13 @@ void on_key_down(int keycode) {
 
 			}
 			else if (keycode == ALLEGRO_KEY_3) {
-				if (man.mana > 0&&defend.valid==1) {
-					defend.valid = 0;
-					man.mana = man.mana - defend.cost;
-					man.armour = man.armour + defend.armour;
-					printf("Use defend!\n");
+				if (man.mana - card3.cost >= 0 &&card3.valid==1) {
+					card3.valid = 0;
+					man.mana = man.mana - card3.cost;
+					man.armour = card3.armour + man.armour;
+					man.atk = card3.damage;
+					man.buff = card3.vulnerable;
+					printf("Use card3!\n");
 					if (stage == 1) {
 						
 						if (man.mana <= 0) {
@@ -1010,11 +1099,11 @@ void on_key_down(int keycode) {
                          man.mana = 4;
                          man.armour = 0;
                          man.atk = 0;
-                         bash.valid = 1;
-                         cleave.valid = 1;
-                         defend.valid = 1;
-                         ironwave.valid = 1;
-                         strike.valid = 1;
+						 card1 = shuffle(random());
+						 card2 = shuffle(random());
+						 card3 = shuffle(random());
+						 card4 = shuffle(random());
+						 card5 = shuffle(random());
 						 louse.interval--;
 						 if (louse.interval == 0) {
 							 man.hp = man.hp - louse.atk + man.armour;
@@ -1033,11 +1122,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							cultist.interval--;
@@ -1059,11 +1148,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							chosen.interval--;
@@ -1085,11 +1174,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							boss.interval--;
@@ -1107,20 +1196,20 @@ void on_key_down(int keycode) {
 					}
 
 				}
-				else if (defend.valid == 0 && man.mana > 0)printf("You have used the defend!\n");
+				else if (defend.valid == 0 && man.mana > 0)printf("You have used the card3!\n");
 				else if ( man.mana <= 0) {
 
 					printf("You have no mana!\n");
 				}
 			}
 			else if (keycode == ALLEGRO_KEY_4) {
-				if (man.mana > 0&&ironwave.valid==1) {
-					ironwave.valid = 0;
-					man.mana = man.mana - ironwave.cost;
-
-					man.armour = man.armour + ironwave.armour;
-					man.atk = ironwave.damage;
-					printf("Use ironwave!\n");
+				if (man.mana - card4.cost >= 0 &&card4.valid==1) {
+					card4.valid = 0;
+					man.mana = man.mana - card4.cost;
+					man.armour = card4.armour + man.armour;
+					man.atk = card4.damage;
+					man.buff = card4.vulnerable;
+					printf("Use card4!\n");
 
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
@@ -1132,11 +1221,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							louse.interval--;
 							if (louse.interval == 0) {
 								man.hp = man.hp - louse.atk + man.armour;
@@ -1158,11 +1247,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							cultist.interval--;
@@ -1186,11 +1275,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							chosen.interval--;
@@ -1214,12 +1303,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
-							
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							turn++;
 							boss.interval--;
 							if (boss.interval == 0) {
@@ -1236,7 +1324,7 @@ void on_key_down(int keycode) {
 					}
 
 				}
-				else if (ironwave.valid == 0&&man.mana>0)printf("You have used the ironwave!\n");
+				else if (ironwave.valid == 0&&man.mana>0)printf("You have used the card4!\n");
 				else if (man.mana <= 0) {
 
 					printf("You have no mana!\n");
@@ -1246,11 +1334,13 @@ void on_key_down(int keycode) {
 				
 			}
 			else if (keycode == ALLEGRO_KEY_5) {
-				if (man.mana > 0&&strike.valid==1) {
-					strike.valid = 0;
-					man.mana = man.mana - strike.cost;
-					man.atk = strike.damage;
-					printf("Use strike!");
+				if (man.mana - card5.cost >= 0 &&card5.valid==1) {
+					card5.valid = 0;
+					man.mana = man.mana - card5.cost;
+					man.armour = card5.armour + man.armour;
+					man.atk = card5.damage;
+					man.buff = card5.vulnerable;
+					printf("Use card5!");
 					if (stage == 1) {
 						if (man.buff >= 1)man.buff--;
 						louse.hp = louse.hp - man.atk - man.buff*man.atk;
@@ -1261,11 +1351,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							louse.interval--;
 							if (louse.interval == 0) {
 								man.hp = man.hp - louse.atk + man.armour;
@@ -1290,11 +1380,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							cultist.interval--;
@@ -1318,11 +1408,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							chosen.interval--;
@@ -1346,11 +1436,11 @@ void on_key_down(int keycode) {
 							man.mana = 4;
 							man.armour = 0;
 							man.atk = 0;
-							bash.valid = 1;
-							cleave.valid = 1;
-							defend.valid = 1;
-							ironwave.valid = 1;
-							strike.valid = 1;
+							card1 = shuffle(random());
+							card2 = shuffle(random());
+							card3 = shuffle(random());
+							card4 = shuffle(random());
+							card5 = shuffle(random());
 							
 							turn++;
 							boss.interval--;
@@ -1367,11 +1457,13 @@ void on_key_down(int keycode) {
 
 					}
 				}
-				else if (strike.valid == 0 && man.mana > 0)printf("You have used the strike!\n");
+				else if (strike.valid == 0 && man.mana > 0)printf("You have used the card5!\n");
 				else if (man.mana <= 0) {
 
 					printf("You have no mana!\n");
 				}
+
+			
 
 			}
 			else if (keycode == ALLEGRO_KEY_ESCAPE) {
@@ -2076,19 +2168,56 @@ int game_run() {
 						ALLEGRO_ALIGN_CENTER, "You died.");
 					printf("You died.\n");
 				}
+				if (card1.valid != 0) {
+                     if(card1.index==1)al_draw_bitmap(Bash, 0, 430, 0);
+					 if(card1.index==2)al_draw_bitmap(Cleave, 0, 430, 0);
+					 if(card1.index==3)al_draw_bitmap(Defend, 0, 430, 0);
+					 if (card1.index == 4) al_draw_bitmap(Ironwave,0, 430, 0);
+					 if (card1.index == 5)al_draw_bitmap(Strike,0, 430, 0);
+
+				}
+					
+				if (card2.valid != 0) {
+					if (card2.index == 1)al_draw_bitmap(Bash, 175, 430, 0);
+					if (card2.index == 2)al_draw_bitmap(Cleave, 175, 430, 0);
+					if (card2.index == 3)al_draw_bitmap(Defend, 175, 430, 0);
+					if (card2.index == 4) al_draw_bitmap(Ironwave, 175, 430, 0);
+					if (card2.index == 5)al_draw_bitmap(Strike, 175, 430, 0);
+
+				}
+					
+				if (card3.valid != 0) {
+					if (card3.index == 1)al_draw_bitmap(Bash, 350, 430, 0);
+					if (card3.index == 2)al_draw_bitmap(Cleave, 350, 430, 0);
+					if (card3.index == 3)al_draw_bitmap(Defend, 350, 430, 0);
+					if (card3.index == 4) al_draw_bitmap(Ironwave, 350, 430, 0);
+					if (card3.index == 5)al_draw_bitmap(Strike, 350, 430, 0);
+
+				}
+					
+				if (card4.valid != 0) {
+					if (card4.index == 1)al_draw_bitmap(Bash, 525, 430, 0);
+					if (card4.index == 2)al_draw_bitmap(Cleave, 525, 430, 0);
+					if (card4.index == 3)al_draw_bitmap(Defend, 525, 430, 0);
+					if (card4.index == 4) al_draw_bitmap(Ironwave, 525, 430, 0);
+					if (card4.index == 5)al_draw_bitmap(Strike, 525, 430, 0);
+
+
+				}
+					
+				if (card5.valid != 0) {
+					if (card5.index == 1)al_draw_bitmap(Bash, 700, 430, 0);
+					if (card5.index == 2)al_draw_bitmap(Cleave, 700, 430, 0);
+					if (card5.index == 3)al_draw_bitmap(Defend, 700, 430, 0);
+					if (card5.index == 4) al_draw_bitmap(Ironwave, 700, 430, 0);
+					if (card5.index == 5)al_draw_bitmap(Strike, 700, 430, 0);
+
+
+				}
 					
 				
 				
 				
-
-				if (bash.valid != 0)  al_draw_bitmap(Bash, 0, 430, 0);
-				if (cleave.valid != 0 )  al_draw_bitmap(Cleave, 175, 430, 0);
-				if (defend.valid != 0)  al_draw_bitmap(Defend, 350, 430, 0);
-				if (ironwave.valid != 0 )  al_draw_bitmap(Ironwave, 525, 430, 0);
-				if (strike.valid != 0  )   al_draw_bitmap(Strike, 700, 430, 0);
-
-				
-
 
 				//printf("al_flip_display in  judge_next_window == 2\n");
 				al_flip_display();
