@@ -30,6 +30,14 @@ ALLEGRO_BITMAP *Gods_Sword_Plastic_Bottle = NULL;
 ALLEGRO_BITMAP *UnderArmor = NULL;
 ALLEGRO_BITMAP *Maples_Shield = NULL;
 ALLEGRO_BITMAP *The_Boardshort_Stuffed_with_One_Million_Dollars = NULL;
+ALLEGRO_BITMAP *victorypicture = NULL;
+ALLEGRO_BITMAP *defeatedpicture = NULL;
+ALLEGRO_BITMAP *Potion1 = NULL;
+ALLEGRO_BITMAP *Potion2 = NULL;
+ALLEGRO_BITMAP *Potion3 = NULL;
+ALLEGRO_BITMAP *Potion4 = NULL;
+
+
 
 //keyboard
 ALLEGRO_KEYBOARD_STATE keyState;
@@ -47,9 +55,8 @@ ALLEGRO_SAMPLE *INN_bgm = NULL;
 ALLEGRO_SAMPLE *grocerystore_bgm = NULL;
 ALLEGRO_SAMPLE *Bossmusic = NULL;
 ALLEGRO_SAMPLE *Dungeonmusic = NULL;
-ALLEGRO_SAMPLE *Strikesound = NULL;
-ALLEGRO_SAMPLE *Monstersound = NULL;
-
+ALLEGRO_SAMPLE *victory = NULL;
+ALLEGRO_SAMPLE *defeated = NULL;
 
 //bgm id
 ALLEGRO_SAMPLE_ID title_bgm_id = { 0 };
@@ -58,6 +65,8 @@ ALLEGRO_SAMPLE_ID INN_bgm_id = { 0 };
 ALLEGRO_SAMPLE_ID grocerystore_bgm_id = { 0 };
 ALLEGRO_SAMPLE_ID Bossmusic_id = { 0 };
 ALLEGRO_SAMPLE_ID Dungeonmusic_id = { 0 };
+ALLEGRO_SAMPLE_ID victory_id = { 0 };
+ALLEGRO_SAMPLE_ID defeated_id = { 0 };
 
 //background
 ALLEGRO_BITMAP *title_bg = NULL;
@@ -65,6 +74,7 @@ ALLEGRO_BITMAP *menu_bg = NULL;
 ALLEGRO_BITMAP *village_bg = NULL;
 ALLEGRO_BITMAP *INN_bg = NULL;
 ALLEGRO_BITMAP *grocerystore_bg = NULL;
+ALLEGRO_BITMAP *dungeon_map = NULL;
 
 //setting(battle)
 ALLEGRO_BITMAP* backgroud = NULL;
@@ -101,9 +111,9 @@ const int SCREEN_W = 900;
 const int SCREEN_H = 900;
 
 
-
+//set the game direction
 int turn = 1;
-
+int tower=1;
 typedef struct character
 {
 	int x;
@@ -154,6 +164,13 @@ card  defend;
 card  ironwave;
 card  strike;
 
+//set the potion
+card potion1;
+card potion2;
+card potion3;
+card potion4;
+
+
 //set the random
 card card1;
 card card2;
@@ -162,27 +179,14 @@ card card4;
 card card5;
 
 
-//set the potion
-card potion1;
-card potion2;
-card potion3;
-card potion4;
-
-
 //set the monsters
 mon  louse;           // hp;atk;interval;money;
 mon  cultist;
 mon  chosen;
 mon boss;
 
-//set the stage and wounded
+//set the stage
 int stage;
-int wound;
-
-
-
-
-
 
 //set the hero
 warrior man;
@@ -234,7 +238,7 @@ void game_vlog(const char* format, va_list arg);
 void menu_run();
 void grocerystore_run();
 
-
+void resetmonster();
 //void weaponstore_run();
 //void defensewearstore_run();
 
@@ -259,7 +263,7 @@ int main(int argc, char *argv[]) {
 	int msg = 0;
 	game_set();
 	game_init();
-	
+
 	game_begin();
 
 	while (msg != GAME_TERMINATE) {
@@ -324,15 +328,15 @@ void game_init() {
 void load_data() {
 	//bgm
 	title_bgm = al_load_sample("Undertale OST_ 002 - Start Menu.mp3");
-	Bossmusic= al_load_sample("battle in boss.mp3");
-	Dungeonmusic= al_load_sample("battle.mp3");
-	Strikesound = al_load_sample("strike sound.mp3");
-	Monstersound= al_load_sample("strike 2.mp3");
+	Bossmusic = al_load_sample("battle in boss.mp3");
+	Dungeonmusic = al_load_sample("battle.mp3");
 	village_bgm = al_load_sample("01_True.mp3");
 	INN_bgm = al_load_sample("Undertale OST_ 012 - Home.mp3");
 	if (INN_bgm == NULL)
 		game_abort("INN_bgm loaded error.\n");
 	grocerystore_bgm = al_load_sample("Undertale OST_ 023 - Shop.mp3");
+	victory = al_load_sample("victory.mp3");
+	defeated = al_load_sample("defeated.mp3");
 
 	//se
 
@@ -353,6 +357,9 @@ void load_data() {
 	hero = al_load_bitmap("hero.png");
 	if (!hero)
 		game_abort("failed to load image: hero");
+	dungeon_map = al_load_bitmap("dungeon_map.png");
+	if (!dungeon_map)
+		game_abort("failed to load image: hero");
 
 
 	//picture
@@ -364,8 +371,14 @@ void load_data() {
 	Maples_Shield = al_load_bitmap("Maples_Shield.jpg");
 	The_Boardshort_Stuffed_with_One_Million_Dollars = al_load_bitmap("The_Boardshort_Stuffed_with_One_Million_Dollars.jpg");
 	//Light_Dot = al_load_bitmap("Light_Dot.png");
-
-
+	Potion1 = al_load_bitmap("potion1.png");
+	Potion2 = al_load_bitmap("potion2.png");
+	Potion3 = al_load_bitmap("potion3.png");
+	Potion4 = al_load_bitmap("potion4.png");
+	victorypicture = al_load_bitmap("victorypicture.jpg");
+	if (!victorypicture)
+		game_abort("failed to load picture: victorypicture");
+	defeatedpicture = al_load_bitmap("defeatedpicture.png");
 
 	//font
 	menu_font = al_load_ttf_font("NotoSansCJKtc-Medium.otf", 20, 0);
@@ -422,7 +435,7 @@ void load_data() {
 
 void game_set() {
 	//tell what monster is fighting now!!
-	 stage = 3;   
+	stage = 3;
 
 	bash.valid = 1;
 	bash.cost = 2;
@@ -484,7 +497,7 @@ void game_set() {
 	potion2.aoe = 0;
 	potion2.index = 6;
 
-	
+
 	potion3.valid = 1;
 	potion3.cost = 0;
 	potion3.armour = 20;
@@ -544,8 +557,8 @@ card  shuffle(int x) {
 
 
 	}
-		
-		
+
+
 	if (x >= 4 && x <= 6) {
 		card y;
 		y = cleave;
@@ -554,8 +567,8 @@ card  shuffle(int x) {
 		return y;
 
 	}
-		
-		
+
+
 	if (x >= 7 && x <= 11) {
 		card y;
 		y = defend;
@@ -563,7 +576,7 @@ card  shuffle(int x) {
 
 		return y;
 	}
-		
+
 	if (x >= 12 && x <= 15) {
 		card y;
 		y = ironwave;
@@ -572,14 +585,14 @@ card  shuffle(int x) {
 
 
 	}
-		
+
 	if (x >= 16 && x <= 20) {
 		card y;
 		y = strike;
 		y.index = 5;
 		return y;
 	}
-		
+
 
 }
 
@@ -589,8 +602,8 @@ card  shuffle(int x) {
 int random(void) {
 	int a;
 	a = (rand() % 20) + 1;
-
 	printf("%d\n", a);
+
 	return a;
 }
 
@@ -625,7 +638,7 @@ int process_event() {
 
 	// Our setting for controlling animation
 	if (event.timer.source == timer) {
-		if (character2.x < - 150) dir = false;
+		if (character2.x < -150) dir = false;
 		else if (character2.x > WIDTH + 50) dir = true;
 
 		if (dir) character2.x -= 10;
@@ -649,417 +662,524 @@ int process_event() {
 	return 0;
 }
 
-void on_key_down(int keycode) {
-	if ((window == 2 || window == 3 || window == 4)&& pop_up_window == false) {
-		switch (keycode) {
-		case ALLEGRO_KEY_W:
-			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
-				character1.y -= 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;
-		/*case ALLEGRO_KEY_UP:
-			if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
-				character1.y -= 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;*/
-		case ALLEGRO_KEY_S:
-			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
-				character1.y += 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;
-		/*case ALLEGRO_KEY_DOWN:
-			if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
-				character1.y += 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;*/
-		case ALLEGRO_KEY_A:
-			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
-				character1.x -= 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;
-		/*case ALLEGRO_KEY_LEFT:
-			if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
-				character1.x -= 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;*/
-		case ALLEGRO_KEY_D:
-			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
-				character1.x += 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;
-		/*case ALLEGRO_KEY_RIGHT:
-			if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
-				character1.x += 25;
-				printf("(%d,%d)\n", character1.x, character1.y);
-			}
-			break;*/
-		case ALLEGRO_KEY_X:
-			menu_run();
+
+void resetmonster() {
+	if (boss.hp <= 0) {
+		al_stop_sample(&Dungeonmusic_id);
+		al_play_sample(victory, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+		while(1){
+			al_draw_bitmap(victorypicture, 0, 0, 0);
+			al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+			al_draw_text(font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+				"Victory, tap enter to continue.");
+			al_flip_display();
+			process_event;
 		}
+		
+
+
 	}
-	else if (window == 1 && judge_next_window == 0) {
+	louse.hp = 75;
+	louse.atk = 10;
+	louse.interval = 1;
+	louse.money = 100;
+
+	cultist.hp = 120;
+	cultist.atk = 20;
+	cultist.interval = 2;
+	cultist.money = 200;
+
+
+	chosen.hp = 210;
+	chosen.atk = 35;
+	chosen.interval = 3;
+	chosen.money = 400;
+
+	boss.hp = 500;
+	boss.atk = 50;
+	boss.interval = 4;
+	boss.money = 1000;
+	turn = 1;
+	tower++;
+	return;
+}
+
+void on_key_down(int keycode) {
+	if (boss.hp <= 0) {
+		if (keycode == ALLEGRO_KEY_ENTER)
+			game_begin();
+	}
+	if (window == 1 && judge_next_window == 0) {
 		if (keycode == ALLEGRO_KEY_ENTER)
 			judge_next_window = 1;
 	}
-	else if (window == 3 && character1.y == 175) {
-		if (keycode == ALLEGRO_KEY_ENTER) {
-			pop_up_window = false;
-			character1.y += 25;
-		}
-	}
-	else if (window == 3 && character1.x == 525 && character1.y == 375) {
-		if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
-			message_number++;
-		else if (message_number == 1) {
-			if (keycode == ALLEGRO_KEY_Z) {
-				message_number = 4;
-				printf("heal(need to check enough money)~~~~~~\n");
+	if (judge_next_window == 1) {
+		if ((window == 2 || window == 3 || window == 4) && pop_up_window == false) {
+			switch (keycode) {
+			case ALLEGRO_KEY_W:
+				if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
+					character1.y -= 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+				/*case ALLEGRO_KEY_UP:
+					if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
+						character1.y -= 25;
+						printf("(%d,%d)\n", character1.x, character1.y);
+					}
+					break;*/
+			case ALLEGRO_KEY_S:
+				if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
+					character1.y += 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+				/*case ALLEGRO_KEY_DOWN:
+					if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
+						character1.y += 25;
+						printf("(%d,%d)\n", character1.x, character1.y);
+					}
+					break;*/
+			case ALLEGRO_KEY_A:
+				if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
+					character1.x -= 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+				/*case ALLEGRO_KEY_LEFT:
+					if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
+						character1.x -= 25;
+						printf("(%d,%d)\n", character1.x, character1.y);
+					}
+					break;*/
+			case ALLEGRO_KEY_D:
+				if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
+					character1.x += 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+				/*case ALLEGRO_KEY_RIGHT:
+					if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
+						character1.x += 25;
+						printf("(%d,%d)\n", character1.x, character1.y);
+					}
+					break;*/
+			case ALLEGRO_KEY_X:
+				menu_run();
 			}
-			else if (keycode == ALLEGRO_KEY_X) {
-				message_number = 3;
-				printf("no~~~~~\n");
+		}
+
+		else if (window == 3 && character1.y == 175) {
+			if (keycode == ALLEGRO_KEY_ENTER) {
+				pop_up_window = false;
+				character1.y += 25;
 			}
 		}
-		else if (message_number == 2 && keycode == ALLEGRO_KEY_ENTER) {
-			message_number = 5;
-			printf("just before in yes scene~~~\n");
-			
-		}
-		else if (message_number == 3 && keycode == ALLEGRO_KEY_ENTER) {
-			message_number = 5;
-			printf("just before in no scene~~~\n");
-		}
-		/*else if (message_number == 4 && keycode == ALLEGRO_KEY_ENTER) {
-			if (money_shortage == false) {
-				message_number = 2;
-			}
-			else
-				message_number = 5;
-		}*/
-		else if (message_number == 11) {
-			if (money >= 81000)
-				money -= 81000;
-			else
-				money -= 100;
-			hp_now = hp_max;
-			message_number = 2;
-		}
-		//else if (message_number == 12)
-		/*else if (message_number == 12 && keycode == ALLEGRO_KEY_ENTER) {
-			message_number = 0;
-			pop_up_window = false;
-			printf("final~~12~~\n");
-			character1.y += 25;
-		}*/
-		else if (message_number == 5 && keycode == ALLEGRO_KEY_ENTER) {
-			message_number = 0;
-			pop_up_window = false;
-			printf("final~~\n");
-			character1.y += 25;
-		}
-	}
-	else if (window == 4 && character1.x == 675 && character1.y == 300) {
-		if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
-			message_number++;
-		else if (message_number == 1) {
-			if (menu_number_chose == 0) {
-				if (keycode == ALLEGRO_KEY_1 || keycode == ALLEGRO_KEY_PAD_1) {
-					menu_number_chose = 1;
-					printf("choose 1\n");
-				}
-				else if (keycode == ALLEGRO_KEY_2 || keycode == ALLEGRO_KEY_PAD_2) {
-					menu_number_chose = 2;
-					printf("choose 2\n");
-				}
-				else if (keycode == ALLEGRO_KEY_3 || keycode == ALLEGRO_KEY_PAD_3) {
-					menu_number_chose = 3;
-					printf("choose 3\n");
-				}
-				else if (keycode == ALLEGRO_KEY_4 || keycode == ALLEGRO_KEY_PAD_4) {
-					menu_number_chose = 4;
-					printf("choose 4\n");
-				}
-				else if (keycode == ALLEGRO_KEY_5 || keycode == ALLEGRO_KEY_PAD_5) {
-					menu_number_chose = 5;
-					printf("choose 5\n");
-				}
-				else if (keycode == ALLEGRO_KEY_6 || keycode == ALLEGRO_KEY_PAD_6) {
-					menu_number_chose = 6;
-					printf("choose 6\n");
-				}
-				else if (keycode == ALLEGRO_KEY_7 || keycode == ALLEGRO_KEY_PAD_7) {
-					menu_number_chose = 7;
-					printf("choose 7\n");
+		else if (window == 3 && character1.x == 525 && character1.y == 375) {
+			if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
+				message_number++;
+			else if (message_number == 1) {
+				if (keycode == ALLEGRO_KEY_Z) {
+					message_number = 4;
+					printf("heal(need to check enough money)~~~~~~\n");
 				}
 				else if (keycode == ALLEGRO_KEY_X) {
-					message_number++;
-					printf("exit\n");
+					message_number = 3;
+					printf("no~~~~~\n");
 				}
 			}
-			else if (menu_number_chose != 0) {
-				if (check_purchase == false) {
-					if (keycode == ALLEGRO_KEY_Z) {
-						check_purchase = true;
-						printf("check_purchase = true\n");
-					}
-					else if (keycode == ALLEGRO_KEY_X) {
-						menu_number_chose = 0;
-						printf("menu_number_chose = 0\n");
-						printf("exit\n");
-					}
-				}
-				else if (check_purchase == true) {
-					if (money_shortage == true && keycode == ALLEGRO_KEY_Z) {
-						money_shortage = false;
-						check_purchase_final = false;
-						check_purchase = false;
-						printf("money_shortage = false\n");
-						printf("check_purchase_final = false\n");
-					}
-					else if (keycode == ALLEGRO_KEY_Z) {
-						check_purchase_final = true;
-						printf("check_purchase_final = true\n");
-					}
-					else if (keycode == ALLEGRO_KEY_X) {
-						check_purchase = false;
-						printf("check_purchase = false\n");
-						printf("exit\n");
-					}
-				}
+			else if (message_number == 2 && keycode == ALLEGRO_KEY_ENTER) {
+				message_number = 5;
+				printf("just before in yes scene~~~\n");
+
 			}
-		}
-		else if (message_number == 2) {		
-			if (keycode == ALLEGRO_KEY_ENTER) {
+			else if (message_number == 3 && keycode == ALLEGRO_KEY_ENTER) {
+				message_number = 5;
+				printf("just before in no scene~~~\n");
+			}
+			/*else if (message_number == 4 && keycode == ALLEGRO_KEY_ENTER) {
+				if (money_shortage == false) {
+					message_number = 2;
+				}
+				else
+					message_number = 5;
+			}*/
+			else if (message_number == 11) {
+				if (money >= 81000)
+					money -= 81000;
+				else
+					money -= 100;
+				hp_now = hp_max;
+				message_number = 2;
+			}
+			//else if (message_number == 12)
+			/*else if (message_number == 12 && keycode == ALLEGRO_KEY_ENTER) {
 				message_number = 0;
 				pop_up_window = false;
-				printf("final~~~\n");
+				printf("final~~12~~\n");
 				character1.y += 25;
-			}			
+			}*/
+			else if (message_number == 5 && keycode == ALLEGRO_KEY_ENTER) {
+				message_number = 0;
+				pop_up_window = false;
+				printf("final~~\n");
+				character1.y += 25;
+			}
+		}
+		else if (window == 4 && character1.x == 675 && character1.y == 300) {
+			if (message_number == 0 && keycode == ALLEGRO_KEY_ENTER)
+				message_number++;
+			else if (message_number == 1) {
+				if (menu_number_chose == 0) {
+					if (keycode == ALLEGRO_KEY_1 || keycode == ALLEGRO_KEY_PAD_1) {
+						menu_number_chose = 1;
+						printf("choose 1\n");
+					}
+					else if (keycode == ALLEGRO_KEY_2 || keycode == ALLEGRO_KEY_PAD_2) {
+						menu_number_chose = 2;
+						printf("choose 2\n");
+					}
+					else if (keycode == ALLEGRO_KEY_3 || keycode == ALLEGRO_KEY_PAD_3) {
+						menu_number_chose = 3;
+						printf("choose 3\n");
+					}
+					else if (keycode == ALLEGRO_KEY_4 || keycode == ALLEGRO_KEY_PAD_4) {
+						menu_number_chose = 4;
+						printf("choose 4\n");
+					}
+					else if (keycode == ALLEGRO_KEY_5 || keycode == ALLEGRO_KEY_PAD_5) {
+						menu_number_chose = 5;
+						printf("choose 5\n");
+					}
+					else if (keycode == ALLEGRO_KEY_6 || keycode == ALLEGRO_KEY_PAD_6) {
+						menu_number_chose = 6;
+						printf("choose 6\n");
+					}
+					else if (keycode == ALLEGRO_KEY_7 || keycode == ALLEGRO_KEY_PAD_7) {
+						menu_number_chose = 7;
+						printf("choose 7\n");
+					}
+					else if (keycode == ALLEGRO_KEY_X) {
+						message_number++;
+						printf("exit\n");
+					}
+				}
+				else if (menu_number_chose != 0) {
+					if (check_purchase == false) {
+						if (keycode == ALLEGRO_KEY_Z) {
+							check_purchase = true;
+							printf("check_purchase = true\n");
+						}
+						else if (keycode == ALLEGRO_KEY_X) {
+							menu_number_chose = 0;
+							printf("menu_number_chose = 0\n");
+							printf("exit\n");
+						}
+					}
+					else if (check_purchase == true) {
+						if (money_shortage == true && keycode == ALLEGRO_KEY_Z) {
+							money_shortage = false;
+							check_purchase_final = false;
+							check_purchase = false;
+							printf("money_shortage = false\n");
+							printf("check_purchase_final = false\n");
+						}
+						else if (keycode == ALLEGRO_KEY_Z) {
+							check_purchase_final = true;
+							printf("check_purchase_final = true\n");
+						}
+						else if (keycode == ALLEGRO_KEY_X) {
+							check_purchase = false;
+							printf("check_purchase = false\n");
+							printf("exit\n");
+						}
+					}
+				}
+			}
+			else if (message_number == 2) {
+				if (keycode == ALLEGRO_KEY_ENTER) {
+					message_number = 0;
+					pop_up_window = false;
+					printf("final~~~\n");
+					character1.y += 25;
+				}
+			}
 		}
 	}
 
+
+
 	
-	
-	
-	
+
+
 
 
 	//battle
 	else if (judge_next_window == 2) {
-	//attack from heros!
-	if (turn==1) {
-		card1 = bash;
-		card2 = cleave;
-		card3 = defend;
-		card4 = ironwave;
-		card5 = strike;
-		
-	   }
-	if (keycode == ALLEGRO_KEY_Q&&potion1.valid>0) {
-		
-		potion1.valid = potion1.valid-1;
-		man.buff = man.buff + 4;
+		//attack from heros!
+		if (turn == 1) {
+			card1 = bash;
+			card2 = cleave;
+			card3 = defend;
+			card4 = ironwave;
+			card5 = strike;
+
+		}
+
+		if (keycode == ALLEGRO_KEY_Q && potion1.valid > 0) {
+
+			potion1.valid = potion1.valid - 1;
+			man.buff = man.buff + 4;
 
 
-	}
-	
-	if (keycode == ALLEGRO_KEY_W && potion2.valid > 0) {
-		potion2.valid = potion2.valid - 1;
-		if (stage == 1)louse.hp = louse.hp - 100;
-		if (stage == 2)cultist.hp = cultist.hp - 100;
-		if (stage == 3)chosen.hp = chosen.hp - 100;
-		if (stage == 4)boss.hp = boss.hp - 100;
+		}
 
-
-	}
-
-	if (keycode == ALLEGRO_KEY_E && potion3.valid > 0) {
-		potion3.valid = potion3.valid - 1;
-		man.armour = man.armour + potion3.armour;
-
-	}
-	if (keycode == ALLEGRO_KEY_R && potion4.valid > 0) {
-		potion4.valid = potion4.valid - 1;
-		man.hp = man.hp + potion4.aoe;
-
-
-	}
-	
-
-	
-			if (keycode == ALLEGRO_KEY_1) {
-				
-				if (man.mana - card1.cost >= 0&&card1.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-					card1.valid = 0;
-					man.mana = man.mana - card1.cost;
-					man.armour = card1.armour+man.armour;
-					man.atk = card1.damage;
-					man.buff = card1.vulnerable;
-					
-
-					printf("Use card1!\n");
-					if (stage == 1) {
-					  if(man.buff>=1)man.buff--;
-						louse.hp = louse.hp - man.atk-man.buff*man.atk;
-						
-
-
-						if (louse.hp <= 0)man.money = man.money + louse.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-                         
-						 turn++;
-						 louse.interval--;
-						 if (louse.interval == 0) {
-							 al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-							 man.hp = man.hp - louse.atk + man.armour;
-							 louse.interval = 1;
-
-
-						 }
-						
-						}
-							
-
-
-					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
-
-
-							}
-
-
-						}
-
-
-
-					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
-
-
-							}
-
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						
-						if (boss.hp <= 0)man.money = man.money + boss.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-							
-							
-
-
-						}
-
-
-
-					}
-
-
-				}
-				else if(bash.valid==0&&man.mana>0)printf("You have used the card1!\n");
-				else if(man.mana<=0){
-
-                printf("You have no mana!\n");
-				}
-					
-					
+		if (keycode == ALLEGRO_KEY_W && potion2.valid > 0) {
+			potion2.valid = potion2.valid - 1;
+			if (stage == 1)louse.hp = louse.hp - 100;
+			if (louse.hp <= 0) {
+				man.money = man.money + louse.money;
+				judge_next_window = 3;
+				window = 0;
+				character1.x = 425;
+				character1.y = 800;
+				resetmonster();
 			}
-			else if (keycode == ALLEGRO_KEY_2) {
-				if (man.mana - card2.cost >= 0 &&card2.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-					card2.valid = 0;
-					man.mana = man.mana - card2.cost;
-					man.armour = card2.armour + man.armour;
-					man.atk = card2.damage;
-					man.buff = card2.vulnerable;
+			if (stage == 2)cultist.hp = cultist.hp - 100;
+			if (cultist.hp <= 0) {
+				man.money = man.money + cultist.money;
+				judge_next_window = 3;
+				window = 0;
+				character1.x = 425;
+				character1.y = 800;
+				resetmonster();
+			}
 
-					printf("Use card2!\n");
-					if (stage == 1) {
-						if (man.buff >= 1)man.buff--;
-						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						
-						if (louse.hp <= 0)man.money = man.money + louse.money;
-						if (man.mana <= 0) {
-                        
+			if (stage == 3)chosen.hp = chosen.hp - 100;
+			if (chosen.hp <= 0) {
+				man.money = man.money + chosen.money;
+				judge_next_window = 3;
+				window = 0;
+				character1.x = 425;
+				character1.y = 800;
+				resetmonster();
+			}
+
+			if (stage == 4)boss.hp = boss.hp - 100;
+			if (boss.hp <= 0) {
+				man.money = man.money + boss.money;
+				judge_next_window = 3;
+				window = 1;
+				resetmonster();
+				//win
+			}
+
+
+		}
+
+		if (keycode == ALLEGRO_KEY_E && potion3.valid > 0) {
+			potion3.valid = potion3.valid - 1;
+			man.armour = man.armour + potion3.armour;
+
+		}
+		if (keycode == ALLEGRO_KEY_R && potion4.valid > 0) {
+			potion4.valid = potion4.valid - 1;
+			man.hp = man.hp + potion4.aoe;
+
+
+		}
+
+
+
+		if (keycode == ALLEGRO_KEY_1) {
+
+			if (man.mana - card1.cost >= 0 && card1.valid == 1) {
+
+				card1.valid = 0;
+				man.mana = man.mana - card1.cost;
+				man.armour = card1.armour + man.armour;
+				man.atk = card1.damage;
+				man.buff = card1.vulnerable;
+
+
+				printf("Use card1!\n");
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0) {
+						man.money = man.money + louse.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						louse.interval--;
+						if (louse.interval == 0) {
+							man.hp = man.hp - louse.atk + man.armour;
+							louse.interval = 1;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0) {
+						man.money = man.money + cultist.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
+
+
+						}
+
+
+					}
+
+
+
+				}
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0) {
+						man.money = man.money + chosen.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
+
+
+						}
+
+
+					}
+
+
+
+				}
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0) {
+						man.money = man.money + boss.money;
+						judge_next_window = 3;
+						window = 1;
+						resetmonster();
+						//win
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
+
+
+
+
+					}
+
+
+
+				}
+
+
+			}
+			else if (bash.valid == 0 && man.mana > 0)printf("You have used the card1!\n");
+			else if (man.mana <= 0) {
+
+				printf("You have no mana!\n");
+			}
+
+
+		}
+		else if (keycode == ALLEGRO_KEY_2) {
+			if (man.mana - card2.cost >= 0 && card2.valid == 1) {
+
+				card2.valid = 0;
+				man.mana = man.mana - card2.cost;
+				man.armour = card2.armour + man.armour;
+				man.atk = card2.damage;
+				man.buff = card2.vulnerable;
+
+				printf("Use card2!\n");
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0) {
+						man.money = man.money + louse.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+
 						turn++;
 						man.mana = 4;
 						man.armour = 0;
@@ -1071,542 +1191,646 @@ void on_key_down(int keycode) {
 						card5 = shuffle(random());
 						louse.interval--;
 						if (louse.interval == 0) {
-							al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 							man.hp = man.hp - louse.atk + man.armour;
 							louse.interval = 1;
 
 
 						}
-						}
-							
-
-
 					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
-
-
-							}
-
-						}
 
 
 
+				}
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0) {
+						man.money = man.money + cultist.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
 					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
 
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
 
-							}
 
 						}
 
+					}
+
+
+
+				}
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0) {
+						man.money = man.money + chosen.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0) {
+						man.money = man.money + boss.money;
+						judge_next_window = 3;
+						window = 1;
+						resetmonster();
+						//win scene
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
 
 
 					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
+
+
+
+				}
+			}
+			else if (cleave.valid == 0 && man.mana > 0)printf("You have used the card2!\n");
+			else if (man.mana <= 0) {
+
+				printf("You have no mana!\n");
+			}
+
+		}
+		else if (keycode == ALLEGRO_KEY_3) {
+			if (man.mana - card3.cost >= 0 && card3.valid == 1) {
+				card3.valid = 0;
+				man.mana = man.mana - card3.cost;
+				man.armour = card3.armour + man.armour;
+				man.atk = card3.damage;
+				man.buff = card3.vulnerable;
+				printf("Use card3!\n");
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0) {
+						man.money = man.money + louse.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
 					
-						if (boss.hp <= 0)man.money = man.money + boss.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
+					if (man.mana <= 0) {
+
+						turn++;
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+						louse.interval--;
+						if (louse.interval == 0) {
+							man.hp = man.hp - louse.atk + man.armour;
+							louse.interval = 1;
 
 
-							}
+						}
+					}
+
+
+
+				}
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0) {
+						man.money = man.money + cultist.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
 
 
 						}
 
+					}
 
+
+
+				}
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0) {
+						man.money = man.money + chosen.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
+
+
+						}
 
 					}
-				}
-				else if (cleave.valid == 0 && man.mana > 0)printf("You have used the card2!\n");
-				else if ( man.mana <= 0) {
 
-					printf("You have no mana!\n");
+
+
+				}
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0) {
+						man.money = man.money + boss.money;
+						judge_next_window = 3;
+						window = 1;
+						resetmonster();
+						//win scene
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
+
+					}
+
+
+
 				}
 
 			}
-			else if (keycode == ALLEGRO_KEY_3) {
-				if (man.mana - card3.cost >= 0 &&card3.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-					card3.valid = 0;
-					man.mana = man.mana - card3.cost;
-					man.armour = card3.armour + man.armour;
-					man.atk = card3.damage;
-					man.buff = card3.vulnerable;
-					printf("Use card3!\n");
-					if (stage == 1) {
-						if (man.buff >= 1)man.buff--;
-						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						
-						
-						if (man.mana <= 0) {
-                         
-                         turn++;
-                         man.mana = 4;
-                         man.armour = 0;
-                         man.atk = 0;
-						 card1 = shuffle(random());
-						 card2 = shuffle(random());
-						 card3 = shuffle(random());
-						 card4 = shuffle(random());
-						 card5 = shuffle(random());
-						 louse.interval--;
-						 if (louse.interval == 0) {
-							 al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-							 man.hp = man.hp - louse.atk + man.armour;
-							 louse.interval = 1;
+			else if (defend.valid == 0 && man.mana > 0)printf("You have used the card3!\n");
+			else if (man.mana <= 0) {
 
-
-						 }
-						}
-							
-
-
-					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
-
-
-							}
-
-						}
-
-
-
-					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
-
-
-							}
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-
-						}
-
-
-
-					}
-
-				}
-				else if (defend.valid == 0 && man.mana > 0)printf("You have used the card3!\n");
-				else if ( man.mana <= 0) {
-
-					printf("You have no mana!\n");
-				}
+				printf("You have no mana!\n");
 			}
-			else if (keycode == ALLEGRO_KEY_4) {
-				if (man.mana - card4.cost >= 0 &&card4.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-					card4.valid = 0;
-					man.mana = man.mana - card4.cost;
-					man.armour = card4.armour + man.armour;
-					man.atk = card4.damage;
-					man.buff = card4.vulnerable;
-					printf("Use card4!\n");
+		}
+		else if (keycode == ALLEGRO_KEY_4) {
+			if (man.mana - card4.cost >= 0 && card4.valid == 1) {
+				card4.valid = 0;
+				man.mana = man.mana - card4.cost;
+				man.armour = card4.armour + man.armour;
+				man.atk = card4.damage;
+				man.buff = card4.vulnerable;
+				printf("Use card4!\n");
 
-					if (stage == 1) {
-						if (man.buff >= 1)man.buff--;
-						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						
-						if (louse.hp <= 0)man.money = man.money + louse.money;
-						if (man.mana <= 0) {
-						 
-							turn++;
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							louse.interval--;
-							if (louse.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - louse.atk + man.armour;
-								louse.interval = 1;
-
-
-							}
-
-						}
-							
-
-
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0) {
+						man.money = man.money + louse.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
 					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
+					if (man.mana <= 0) {
 
+						turn++;
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+						louse.interval--;
+						if (louse.interval == 0) {
+							man.hp = man.hp - louse.atk + man.armour;
+							louse.interval = 1;
 
-							}
 
 						}
 
-
-
 					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
 
 
-							}
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						
-						if (boss.hp <= 0)man.money = man.money + boss.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-
-						}
-
-
-
-					}
 
 				}
-				else if (ironwave.valid == 0&&man.mana>0)printf("You have used the card4!\n");
-				else if (man.mana <= 0) {
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0) {
+						man.money = man.money + cultist.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
 
-					printf("You have no mana!\n");
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
+						}
+
+					}
+
+
+
 				}
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0) {
+						man.money = man.money + chosen.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
 
- 
-				
-			}
-			else if (keycode == ALLEGRO_KEY_5) {
-				if (man.mana - card5.cost >= 0 &&card5.valid==1) {
-					al_play_sample(Strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-					card5.valid = 0;
-					man.mana = man.mana - card5.cost;
-					man.armour = card5.armour + man.armour;
-					man.atk = card5.damage;
-					man.buff = card5.vulnerable;
-					printf("Use card5!");
-					if (stage == 1) {
-						if (man.buff >= 1)man.buff--;
-						louse.hp = louse.hp - man.atk - man.buff*man.atk;
-						
-						if (louse.hp <= 0)man.money = man.money + louse.money;
-						if (man.mana <= 0) {
-                           
-							turn++;
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							louse.interval--;
-							if (louse.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - louse.atk + man.armour;
-								louse.interval = 1;
-
-
-							}
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
 
 
 						}
-							
-							
-						
-						
 
 					}
-					if (stage == 2) {
-						if (man.buff >= 1)man.buff--;
-						cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
-						
-						if (cultist.hp <= 0)man.money = man.money + cultist.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							cultist.interval--;
-							if (cultist.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - cultist.atk + man.armour;
-								cultist.interval = 2;
-
-
-							}
-
-						}
 
 
 
-					}
-					if (stage == 3) {
-						if (man.buff >= 1)man.buff--;
-						chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
-						
-						if (chosen.hp <= 0)man.money = man.money + chosen.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							chosen.interval--;
-							if (chosen.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - chosen.atk + man.armour;
-								chosen.interval = 3;
-
-
-							}
-
-						}
-
-
-
-					}
-					if (stage == 4) {
-						if (man.buff >= 1)man.buff--;
-						boss.hp = boss.hp - man.atk - man.buff*man.atk;
-						
-						if (boss.hp <= 0)man.money = man.money + boss.money;
-						if (man.mana <= 0) {
-							man.mana = 4;
-							man.armour = 0;
-							man.atk = 0;
-							card1 = shuffle(random());
-							card2 = shuffle(random());
-							card3 = shuffle(random());
-							card4 = shuffle(random());
-							card5 = shuffle(random());
-							
-							turn++;
-							boss.interval--;
-							if (boss.interval == 0) {
-								al_play_sample(Monstersound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-								man.hp = man.hp - boss.atk + man.armour;
-								boss.interval = 4;
-
-
-							}
-
-						}
-
-
-
-					}
 				}
-				else if (strike.valid == 0 && man.mana > 0)printf("You have used the card5!\n");
-				else if (man.mana <= 0) {
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0) {
+						man.money = man.money + boss.money;
+						judge_next_window = 3;
+						window = 1;
+						resetmonster();
+						//win scene
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
 
-					printf("You have no mana!\n");
+
+						}
+
+					}
+
+
+
 				}
-
-			
 
 			}
-			else if (keycode == ALLEGRO_KEY_ESCAPE) {
-				
-				
-				printf("You can't escape from battle!\n");
-			}	
-        
+			else if (ironwave.valid == 0 && man.mana > 0)printf("You have used the card4!\n");
+			else if (man.mana <= 0) {
+
+				printf("You have no mana!\n");
+			}
+
+
+
+		}
+		else if (keycode == ALLEGRO_KEY_5) {
+			if (man.mana - card5.cost >= 0 && card5.valid == 1) {
+				card5.valid = 0;
+				man.mana = man.mana - card5.cost;
+				man.armour = card5.armour + man.armour;
+				man.atk = card5.damage;
+				man.buff = card5.vulnerable;
+				printf("Use card5!");
+				if (stage == 1) {
+					if (man.buff >= 1)man.buff--;
+					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					if (louse.hp <= 0) {
+						man.money = man.money + louse.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+
+						turn++;
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+						louse.interval--;
+						if (louse.interval == 0) {
+							man.hp = man.hp - louse.atk + man.armour;
+							louse.interval = 1;
+
+
+						}
+
+
+					}
+
+
+
+
+
+				}
+				if (stage == 2) {
+					if (man.buff >= 1)man.buff--;
+					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
+					if (cultist.hp <= 0) {
+						man.money = man.money + cultist.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						cultist.interval--;
+						if (cultist.interval == 0) {
+							man.hp = man.hp - cultist.atk + man.armour;
+							cultist.interval = 2;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 3) {
+					if (man.buff >= 1)man.buff--;
+					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
+					if (chosen.hp <= 0) {
+						man.money = man.money + chosen.money;
+						judge_next_window = 3;
+						window = 0;
+						character1.x = 425;
+						character1.y = 800;
+						resetmonster();
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						chosen.interval--;
+						if (chosen.interval == 0) {
+							man.hp = man.hp - chosen.atk + man.armour;
+							chosen.interval = 3;
+
+
+						}
+
+					}
+
+
+
+				}
+				if (stage == 4) {
+					if (man.buff >= 1)man.buff--;
+					boss.hp = boss.hp - man.atk - man.buff*man.atk;
+					if (boss.hp <= 0) {
+						man.money = man.money + boss.money;
+						judge_next_window = 3;
+						resetmonster();
+						window = 1;//win scene
+
+						//////////
+					}
+					if (man.mana <= 0) {
+						man.mana = 4;
+						man.armour = 0;
+						man.atk = 0;
+						card1 = shuffle(random());
+						card2 = shuffle(random());
+						card3 = shuffle(random());
+						card4 = shuffle(random());
+						card5 = shuffle(random());
+
+						turn++;
+						boss.interval--;
+						if (boss.interval == 0) {
+							man.hp = man.hp - boss.atk + man.armour;
+							boss.interval = 4;
+
+
+						}
+
+					}
+
+
+
+				}
+			}
+			else if (strike.valid == 0 && man.mana > 0)printf("You have used the card5!\n");
+			else if (man.mana <= 0) {
+
+				printf("You have no mana!\n");
+			}
+
+
+
+		}
+		else if (keycode == ALLEGRO_KEY_ESCAPE) {
+
+
+			printf("You can't escape from battle!\n");
+		}
+
+
+	}
+	if (judge_next_window == 3) {
+		if (window == 0) {
+			switch (keycode) {
+			case ALLEGRO_KEY_W:
+				if (check_boundary(character1.x, character1.y - 25)) {
+					character1.y -= 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+			case ALLEGRO_KEY_S:
+				if (check_boundary(character1.x, character1.y + 25)) {
+					character1.y += 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+			case ALLEGRO_KEY_A:
+				if (check_boundary(character1.x - 25, character1.y)) {
+					character1.x -= 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+			case ALLEGRO_KEY_D:
+				if (check_boundary(character1.x + 25, character1.y)) {
+					character1.x += 25;
+					printf("(%d,%d)\n", character1.x, character1.y);
+				}
+				break;
+			case ALLEGRO_KEY_X:
+				menu_run();
+			}
+		}
 	}
 }
 
 
 void event_window() {
+
 	if (judge_next_window == 1) {
 		if (window == 2) {//in the village
 			if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
@@ -1631,10 +1855,12 @@ void event_window() {
 				printf("In grocery store:\n");
 			}
 			else if (character1.x == 300 && character1.y == HEIGHT - 100) {
-				judge_next_window = 2;
-				window = 1;
+				judge_next_window = 3;
+				window = 0;
+				character1.x = 425;
+				character1.y = 800;
 				al_stop_sample(&village_bgm_id);
-				al_play_sample(Dungeonmusic, 0.4, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &Dungeonmusic_id);				
+				al_play_sample(Dungeonmusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &Dungeonmusic_id);
 			}
 
 
@@ -1697,9 +1923,49 @@ void event_window() {
 
 		}*/
 	}
-	else if (judge_next_window == 2) {
 
-		if (stage == 4)al_play_sample(Bossmusic, 0.3, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
+	else if (judge_next_window == 3) {
+		if (window == 0) {
+			if (character1.y == -25) {
+				if(tower==1) {
+					judge_next_window = 2;
+					window = 1;
+					stage = 4;
+
+				}
+				else {
+					int x = random() % 4 + 1;//random monster
+					if (x == 1) {
+						judge_next_window = 2;
+						window = 1;
+						stage = 1;
+
+					}
+					else if (x == 2) {
+						judge_next_window = 2;
+						window = 1;
+						stage = 2;
+					}
+					else if (x == 3) {
+						judge_next_window = 2;
+						window = 1;
+						stage = 3;
+					}
+					else if (x == 4) {
+						character1.x = 300;
+						character1.y = HEIGHT - 150;
+						judge_next_window = 1;
+						window = 2;
+					}
+
+
+
+
+				}
+			
+			}
+		}
+
 	}
 
 }
@@ -1730,7 +1996,7 @@ int game_run() {
 				timer = al_create_timer(1.0 / 15.0);
 				timer2 = al_create_timer(1.0);
 				timer3 = al_create_timer(1.0 / 10.0);
-				
+
 				al_register_event_source(event_queue, al_get_timer_event_source(timer));
 				al_register_event_source(event_queue, al_get_timer_event_source(timer2));
 				al_register_event_source(event_queue, al_get_timer_event_source(timer3));
@@ -1741,7 +2007,7 @@ int game_run() {
 		}
 	}
 	// Second window(Main Game)
-	if(judge_next_window == 1){
+	if (judge_next_window == 1) {
 		if (window > 1) {
 			// Change Image for animation
 			if (window == 2) {
@@ -2204,191 +2470,198 @@ int game_run() {
 				error = process_event();
 			}
 		}
-
-
-
-		//battle
-		if (judge_next_window == 2) {
-			while (window == 1) {
-				//printf("in game_run window judge_next_window == 2\n");
-				
+	}
+	//battle
+	if (judge_next_window == 2) {
+		while (window == 1) {
+			//printf("in game_run window judge_next_window == 2\n");
 
 
 
 
-				// draw the battlefield and indicate the turn
-			    al_draw_bitmap(Board, 0, 0, 0);
-				if (stage == 4) {
-					al_draw_bitmap(Bossroom, 0, 0, 0);
-				}
-					
-				if(stage!=4)al_draw_bitmap(backgroud, 0, 0, 0);
-                al_draw_rectangle(3, 429,897, 897,al_map_rgb(255, 255, 255), 6);
-				al_draw_rectangle(3, 690, 897, 897, al_map_rgb(255, 255, 255), 6);
-                al_draw_rectangle(770, 0, 899, 429, al_map_rgb(255, 255, 255), 2);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 10,
-					ALLEGRO_ALIGN_CENTER, "System");
-				al_draw_text(font, al_map_rgb(255, 255, 255), 450, 700,
-					ALLEGRO_ALIGN_CENTER, "Item:");
 
-				// load the potion
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 150, 850,
-					ALLEGRO_ALIGN_CENTER, "potion1:(%d/1)",potion1.valid);
-				al_draw_text(font, al_map_rgb(255, 255, 255), 150, 825,
-					ALLEGRO_ALIGN_CENTER, "Vulnerable+4");
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 350, 850,
-					ALLEGRO_ALIGN_CENTER, "potion2:(%d/1)", potion2.valid);
-				al_draw_text(font, al_map_rgb(255, 255, 255), 350, 825,
-					ALLEGRO_ALIGN_CENTER, "Damage 100pt");
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 550, 850,
-					ALLEGRO_ALIGN_CENTER, "potion3:(%d/1)", potion3.valid);
-				al_draw_text(font, al_map_rgb(255, 255, 255), 550, 825,
-					ALLEGRO_ALIGN_CENTER, "Armour+20");
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 750, 850,
-					ALLEGRO_ALIGN_CENTER, "potion4:(%d/1)", potion4.valid);
-				al_draw_text(font, al_map_rgb(255, 255, 255), 750, 825,
-					ALLEGRO_ALIGN_CENTER, "Hp+100");
-
-				// load the system
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 40,
-					ALLEGRO_ALIGN_CENTER, "turn:%d", turn);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 830, 200,
-					ALLEGRO_ALIGN_CENTER, "money:%d", man.money);
-				
-
-
-				//draw the monster 
-				if (stage == 1&&louse.hp>0&&wound==0) {
-				
-					al_draw_bitmap(Louse, 390, 250, 0);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
-						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
-						ALLEGRO_ALIGN_CENTER, "Hp:%d", louse.hp);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
-						ALLEGRO_ALIGN_CENTER, "Attack:%d", louse.atk);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
-						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", louse.interval);
-					
-				}
-				
-
-				if (stage == 2&&cultist.hp>0 && wound == 0) {
-                    al_draw_bitmap(Cultist, 390, 150, 0);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
-						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
-						ALLEGRO_ALIGN_CENTER, "Hp:%d", cultist.hp);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
-						ALLEGRO_ALIGN_CENTER, "Attack:%d", cultist.atk);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
-						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", cultist.interval);
-				}
-				 
-				if (stage == 3&&chosen.hp>0 && wound == 0) {
-					al_draw_bitmap(Chosen, 390, 150, 0);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
-						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
-						ALLEGRO_ALIGN_CENTER, "Hp:%d", chosen.hp);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
-						ALLEGRO_ALIGN_CENTER, "Attack:%d", chosen.atk);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
-						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", chosen.interval);
-
-				}
-				if (stage == 4 && boss.hp > 0 && wound == 0) {
-					al_draw_bitmap(Boss, 390, 100, 0);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
-						ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
-						ALLEGRO_ALIGN_CENTER, "Hp:%d", boss.hp);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
-						ALLEGRO_ALIGN_CENTER, "Attack:%d", boss.atk);
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
-						ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", boss.interval);
-
-				}
-
-
-
-				// draw the hero and the indicate the data of hero
-				al_draw_bitmap(hero, 0, 150, 0);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 100,
-					ALLEGRO_ALIGN_CENTER, "Hp:%d", man.hp);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 150,
-					ALLEGRO_ALIGN_CENTER, "Attack:%d", man.atk);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 200,
-					ALLEGRO_ALIGN_CENTER, "armour:%d", man.armour);
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 250,
-					ALLEGRO_ALIGN_CENTER, "mana:%d", man.mana);
-				if (man.hp <= 0) {
-					al_draw_text(font, al_map_rgb(255, 255, 255), 815, 300,
-						ALLEGRO_ALIGN_CENTER, "You died!!");
-					printf("You died.\n");
-				}
-				if (card1.valid != 0) {
-                     if(card1.index==1)al_draw_bitmap(Bash, 0, 430, 0);
-					 if(card1.index==2)al_draw_bitmap(Cleave, 0, 430, 0);
-					 if(card1.index==3)al_draw_bitmap(Defend, 0, 430, 0);
-					 if (card1.index == 4) al_draw_bitmap(Ironwave,0, 430, 0);
-					 if (card1.index == 5)al_draw_bitmap(Strike,0, 430, 0);
-
-				}
-					
-				if (card2.valid != 0) {
-					if (card2.index == 1)al_draw_bitmap(Bash, 175, 430, 0);
-					if (card2.index == 2)al_draw_bitmap(Cleave, 175, 430, 0);
-					if (card2.index == 3)al_draw_bitmap(Defend, 175, 430, 0);
-					if (card2.index == 4) al_draw_bitmap(Ironwave, 175, 430, 0);
-					if (card2.index == 5)al_draw_bitmap(Strike, 175, 430, 0);
-
-				}
-					
-				if (card3.valid != 0) {
-					if (card3.index == 1)al_draw_bitmap(Bash, 350, 430, 0);
-					if (card3.index == 2)al_draw_bitmap(Cleave, 350, 430, 0);
-					if (card3.index == 3)al_draw_bitmap(Defend, 350, 430, 0);
-					if (card3.index == 4) al_draw_bitmap(Ironwave, 350, 430, 0);
-					if (card3.index == 5)al_draw_bitmap(Strike, 350, 430, 0);
-
-				}
-					
-				if (card4.valid != 0) {
-					if (card4.index == 1)al_draw_bitmap(Bash, 525, 430, 0);
-					if (card4.index == 2)al_draw_bitmap(Cleave, 525, 430, 0);
-					if (card4.index == 3)al_draw_bitmap(Defend, 525, 430, 0);
-					if (card4.index == 4) al_draw_bitmap(Ironwave, 525, 430, 0);
-					if (card4.index == 5)al_draw_bitmap(Strike, 525, 430, 0);
-
-
-				}
-					
-				if (card5.valid != 0) {
-					if (card5.index == 1)al_draw_bitmap(Bash, 700, 430, 0);
-					if (card5.index == 2)al_draw_bitmap(Cleave, 700, 430, 0);
-					if (card5.index == 3)al_draw_bitmap(Defend, 700, 430, 0);
-					if (card5.index == 4) al_draw_bitmap(Ironwave, 700, 430, 0);
-					if (card5.index == 5)al_draw_bitmap(Strike, 700, 430, 0);
-
-
-				}
-					
-				
-				
-				
-
-				//printf("al_flip_display in  judge_next_window == 2\n");
-				al_flip_display();
-				error = process_event();
-				if (judge_next_window != 2)
-					break;
+			// draw the battlefield and indicate the turn
+			al_draw_bitmap(Board, 0, 0, 0);
+			if (stage == 4) {
+				al_draw_bitmap(Bossroom, 0, 0, 0);
 			}
+
+			if (stage != 4)al_draw_bitmap(backgroud, 0, 0, 0);
+			al_draw_rectangle(3, 429, 897, 897, al_map_rgb(255, 255, 255), 6);
+			al_draw_rectangle(3, 690, 897, 897, al_map_rgb(255, 255, 255), 6);
+			al_draw_rectangle(770, 0, 899, 429, al_map_rgb(255, 255, 255), 2);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 10,
+				ALLEGRO_ALIGN_CENTER, "System");
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 810, 230,
+				ALLEGRO_ALIGN_CENTER, "turn:%d", turn);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 830, 200,
+				ALLEGRO_ALIGN_CENTER, "money:%d", man.money);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 830, 40,
+				ALLEGRO_ALIGN_CENTER, "tower:(%d/5)", tower);
+			
+			//load the potion
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 150, 850,
+				ALLEGRO_ALIGN_CENTER, "potion1:(%d/1)", potion1.valid);
+			al_draw_text(font, al_map_rgb(255, 255, 255), 150, 825,
+				ALLEGRO_ALIGN_CENTER, "Vulnerable+4");
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 350, 850,
+				ALLEGRO_ALIGN_CENTER, "potion2:(%d/1)", potion2.valid);
+			al_draw_text(font, al_map_rgb(255, 255, 255), 350, 825,
+				ALLEGRO_ALIGN_CENTER, "Damage +100pt");
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 550, 850,
+				ALLEGRO_ALIGN_CENTER, "potion3:(%d/1)", potion3.valid);
+			al_draw_text(font, al_map_rgb(255, 255, 255), 550, 825,
+				ALLEGRO_ALIGN_CENTER, "Armour+20");
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 750, 850,
+				ALLEGRO_ALIGN_CENTER, "potion4:(%d/1)", potion4.valid);
+			al_draw_text(font, al_map_rgb(255, 255, 255), 750, 825,
+				ALLEGRO_ALIGN_CENTER, "Hp+100");
+			al_draw_bitmap(Potion1, 115, 750, 0);
+			al_draw_bitmap(Potion2, 315, 750, 0);
+			al_draw_bitmap(Potion3, 515, 750, 0);
+			al_draw_bitmap(Potion4, 715, 750, 0);
+
+
+			//draw the monster 
+			if (stage == 1 && louse.hp > 0) {
+
+				al_draw_bitmap(Louse, 390, 250, 0);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
+					ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
+					ALLEGRO_ALIGN_CENTER, "Hp:%d", louse.hp);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
+					ALLEGRO_ALIGN_CENTER, "Attack:%d", louse.atk);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
+					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", louse.interval);
+
+			}
+
+
+			if (stage == 2 && cultist.hp > 0) {
+				al_draw_bitmap(Cultist, 390, 150, 0);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
+					ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
+					ALLEGRO_ALIGN_CENTER, "Hp:%d", cultist.hp);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
+					ALLEGRO_ALIGN_CENTER, "Attack:%d", cultist.atk);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
+					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", cultist.interval);
+			}
+
+			if (stage == 3 && chosen.hp > 0) {
+				al_draw_bitmap(Chosen, 390, 150, 0);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
+					ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
+					ALLEGRO_ALIGN_CENTER, "Hp:%d", chosen.hp);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
+					ALLEGRO_ALIGN_CENTER, "Attack:%d", chosen.atk);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
+					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", chosen.interval);
+
+			}
+			if (stage == 4 && boss.hp > 0) {
+				al_draw_bitmap(Boss, 390, 100, 0);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 50,
+					ALLEGRO_ALIGN_CENTER, "vulnerable:%d", man.buff);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 100,
+					ALLEGRO_ALIGN_CENTER, "Hp:%d", boss.hp);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 150,
+					ALLEGRO_ALIGN_CENTER, "Attack:%d", boss.atk);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
+					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", boss.interval);
+
+			}
+
+
+
+			// draw the hero and the indicate the data of hero
+			al_draw_bitmap(hero, 0, 150, 0);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 100,
+				ALLEGRO_ALIGN_CENTER, "Hp:%d", man.hp);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 150,
+				ALLEGRO_ALIGN_CENTER, "Attack:%d", man.atk);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 200,
+				ALLEGRO_ALIGN_CENTER, "armour:%d", man.armour);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 100, 250,
+				ALLEGRO_ALIGN_CENTER, "mana:%d", man.mana);
+			if (man.hp <= 0) {
+				al_draw_text(font, al_map_rgb(255, 255, 255), 815, 300,
+					ALLEGRO_ALIGN_CENTER, "You died.");
+				printf("You died.\n");
+			}
+			if (card1.valid != 0) {
+				if (card1.index == 1)al_draw_bitmap(Bash, 0, 430, 0);
+				if (card1.index == 2)al_draw_bitmap(Cleave, 0, 430, 0);
+				if (card1.index == 3)al_draw_bitmap(Defend, 0, 430, 0);
+				if (card1.index == 4) al_draw_bitmap(Ironwave, 0, 430, 0);
+				if (card1.index == 5)al_draw_bitmap(Strike, 0, 430, 0);
+
+			}
+
+			if (card2.valid != 0) {
+				if (card2.index == 1)al_draw_bitmap(Bash, 175, 430, 0);
+				if (card2.index == 2)al_draw_bitmap(Cleave, 175, 430, 0);
+				if (card2.index == 3)al_draw_bitmap(Defend, 175, 430, 0);
+				if (card2.index == 4) al_draw_bitmap(Ironwave, 175, 430, 0);
+				if (card2.index == 5)al_draw_bitmap(Strike, 175, 430, 0);
+
+			}
+
+			if (card3.valid != 0) {
+				if (card3.index == 1)al_draw_bitmap(Bash, 350, 430, 0);
+				if (card3.index == 2)al_draw_bitmap(Cleave, 350, 430, 0);
+				if (card3.index == 3)al_draw_bitmap(Defend, 350, 430, 0);
+				if (card3.index == 4) al_draw_bitmap(Ironwave, 350, 430, 0);
+				if (card3.index == 5)al_draw_bitmap(Strike, 350, 430, 0);
+
+			}
+
+			if (card4.valid != 0) {
+				if (card4.index == 1)al_draw_bitmap(Bash, 525, 430, 0);
+				if (card4.index == 2)al_draw_bitmap(Cleave, 525, 430, 0);
+				if (card4.index == 3)al_draw_bitmap(Defend, 525, 430, 0);
+				if (card4.index == 4) al_draw_bitmap(Ironwave, 525, 430, 0);
+				if (card4.index == 5)al_draw_bitmap(Strike, 525, 430, 0);
+
+
+			}
+
+			if (card5.valid != 0) {
+				if (card5.index == 1)al_draw_bitmap(Bash, 700, 430, 0);
+				if (card5.index == 2)al_draw_bitmap(Cleave, 700, 430, 0);
+				if (card5.index == 3)al_draw_bitmap(Defend, 700, 430, 0);
+				if (card5.index == 4) al_draw_bitmap(Ironwave, 700, 430, 0);
+				if (card5.index == 5)al_draw_bitmap(Strike, 700, 430, 0);
+
+
+			}
+
+			//printf("al_flip_display in  judge_next_window == 2\n");
+			al_flip_display();
+			error = process_event();
+			if (judge_next_window != 2)
+				break;
 		}
-		
+	}
+
+	if (judge_next_window == 3) {
+		while (window == 0) {
+			al_draw_bitmap(dungeon_map, 0, 0, 0);
+			al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
+
+			al_flip_display();
+			error = process_event();
+			if (judge_next_window != 3)
+				break;
+		}
 	}
 	return error;
 }
+
+
 
 void game_destroy() {
 	// Make sure you destroy all things
@@ -2402,138 +2675,154 @@ void game_destroy() {
 	//al_destroy_sample(song);
 }
 
-bool check_boundary(int x, int y) 
+bool check_boundary(int x, int y)
 {
-	if (window == 2) {
-		if (x == 100 && y == 675)
-			return true;
-		else if (x >= 100 && x <= 500 && y == 700)
-			return true;
-		else if (x == 500 && y >= 625 && y <= 675)
-			return true;
-		else if (x == 300 && y == 675)
-			return true;
-		else if (x == 175 && y >= 500 && y <= 675)
-			return true;
-		else if (x >= 50 && x <= 425 && y == 475)
-			return true;
-		else if (x == 375 && y == 450)
-			return true;
-		else if (x == 250 && y == 450)
-			return true;
-		else if (x >= 125 && x <= 150 && y >= 400 && y <= 450)
-			return true;
-		else if (x >= 150 && x <= 175 && y == 375)
-			return true;
-		else if (x == 100 && y == 400)
-			return true;
-		else if (x == 75 && y == 400)
-			return true;
-		else if (x == 75 && y == 425)
-			return true;
-		else if (x == 150 && y == 350)
-			return true;
-		else if (x == 425 && y >= 175 && y <= 675)
-			return true;
-		else if (x >= 175 && x <= 400 && y == 175)
-			return true;
-		else if (x >= 450 && x <= 700 && y == 400)
-			return true;
-		else if (x >= 725 && x <= 800 && y >= 375 && y <= 425)
-			return true;
-		else if (x >= 725 && x <= 750 && y == 450)
-			return true;
-		else if (x == 725 && y == 475)
-			return true;
-		else if (x == 700 && y >= 475 && y <= 625)
-			return true;
-		else if (x >= 725 && x <= 800 && y >= 600 && y <= 675)
-			return true;
-		else if (x == 800 && y >= 525 && y <= 575)
-			return true;
-		else if (x == 775 && y >= 550 && y <= 575)
-			return true;
-		else if (x == 800 && y >= 75 && y <= 350)
-			return true;
-		else if (x == 775 && y >= 100 && y <= 125)
-			return true;
-		else if (x >= 750 && x <= 775 && y >= 200 && y <= 300)
-			return true;
-		else if (x == 300 && y >= 725 && y <= 800)
-			return true;
-		else
-			return false;
+	if (judge_next_window == 1) {
+		if (window == 2) {
+			if (x == 100 && y == 675)
+				return true;
+			else if (x >= 100 && x <= 500 && y == 700)
+				return true;
+			else if (x == 500 && y >= 625 && y <= 675)
+				return true;
+			else if (x == 300 && y == 675)
+				return true;
+			else if (x == 175 && y >= 500 && y <= 675)
+				return true;
+			else if (x >= 50 && x <= 425 && y == 475)
+				return true;
+			else if (x == 375 && y == 450)
+				return true;
+			else if (x == 250 && y == 450)
+				return true;
+			else if (x >= 125 && x <= 150 && y >= 400 && y <= 450)
+				return true;
+			else if (x >= 150 && x <= 175 && y == 375)
+				return true;
+			else if (x == 100 && y == 400)
+				return true;
+			else if (x == 75 && y == 400)
+				return true;
+			else if (x == 75 && y == 425)
+				return true;
+			else if (x == 150 && y == 350)
+				return true;
+			else if (x == 425 && y >= 175 && y <= 675)
+				return true;
+			else if (x >= 175 && x <= 400 && y == 175)
+				return true;
+			else if (x >= 450 && x <= 700 && y == 400)
+				return true;
+			else if (x >= 725 && x <= 800 && y >= 375 && y <= 425)
+				return true;
+			else if (x >= 725 && x <= 750 && y == 450)
+				return true;
+			else if (x == 725 && y == 475)
+				return true;
+			else if (x == 700 && y >= 475 && y <= 625)
+				return true;
+			else if (x >= 725 && x <= 800 && y >= 600 && y <= 675)
+				return true;
+			else if (x == 800 && y >= 525 && y <= 575)
+				return true;
+			else if (x == 775 && y >= 550 && y <= 575)
+				return true;
+			else if (x == 800 && y >= 75 && y <= 350)
+				return true;
+			else if (x == 775 && y >= 100 && y <= 125)
+				return true;
+			else if (x >= 750 && x <= 775 && y >= 200 && y <= 300)
+				return true;
+			else if (x == 300 && y >= 725 && y <= 800)
+				return true;
+			else
+				return false;
+		}
+		if (window == 3) {
+			if (x == 700 && y >= 300 && y <= 600)
+				return true;
+			else if (x >= 650 && x <= 675 && y >= 175 && y <= 650)
+				return true;
+			else if (x >= 575 && x <= 625 && y >= 300 && y <= 650)
+				return true;
+			else if (x == 525 && y >= 375 && y <= 650)
+				return true;
+			else if (x >= 375 && x <= 475 && y >= 375 && y <= 650)
+				return true;
+			else if (x == 425 && y >= 675 && y <= 800)
+				return true;
+			else if (x >= 150 && x <= 350 && y >= 375 && y <= 575)
+				return true;
+			else if (x >= 150 && x <= 325 && y == 600)
+				return true;
+			else if (x >= 175 && x <= 325 && y >= 625 && y <= 650)
+				return true;
+			else if (x == 500 && x >= 375 && y <= 575)
+				return true;
+			else if (x == 550 && y >= 375 && y <= 650)
+				return true;
+			else if (x >= 175 && x <= 500 && y == 275)
+				return true;
+			else if (x >= 325 && x <= 500 && y >= 200 && y <= 275)
+				return true;
+			else if (x == 425 && y == 175)
+				return true;
+			else
+				return false;
+		}
+		else if (window == 4) {
+			if (x == 675 && y >= 425 && y <= 550)
+				return true;
+			else if (x >= 525 && x <= 825 && y >= 300 && y <= 400)
+				return true;
+			else if (x >= 350 && x <= 500 && y == 400)
+				return true;
+			else if (x == 325 && y == 400)
+				return true;
+			else if (x >= 325 && x <= 400 && y >= 425 && y <= 675)
+				return true;
+			else if (x >= 150 && x <= 300 && y == 675)
+				return true;
+			else if (x >= 150 && x <= 300 && y == 450)
+				return true;
+			else if (x >= 50 && x <= 125 && y >= 200 && y <= 675)
+				return true;
+			else if (x >= 150 && x <= 550 && y >= 200 && y <= 250)
+				return true;
+			else if (x == 325 && y >= 275 && y <= 350)
+				return true;
+			else if (x >= 450 && x <= 550 && y >= 150 && y <= 175)
+				return true;
+			else if (x >= 575 && x <= 700 && y == 150)
+				return true;
+			else if (x >= 700 && x <= 825 && y == 200)
+				return true;
+			else if (x == 700 && y == 175)
+				return true;
+			else if (x == 800 && y == 175)
+				return true;
+			else if (x == 825 && y == 175)
+				return true;
+			else if (x >= 150 && x <= 300 && y == 475)
+				return true;
+			else if (x == 525 && y == 275)
+				return true;
+			else if (x == 550 && y == 275)
+				return true;
+			else
+				return false;
+		}
 	}
-	if (window == 3) {
-		if (x == 700 && y >= 300 && y <= 600)
+	if (judge_next_window == 3) {
+		if (x == 425 && y >= -25 && y <= 800)
 			return true;
-		else if (x >= 650 && x <= 675 && y >= 175 && y <= 650)
+		else if (x >= 375 && x <= 475 && y >= 550 && y <= 725)
 			return true;
-		else if (x >= 575 && x <= 625 && y >= 300 && y <= 650)
+		else if (x >= 100 && x <= 750 && y >= 475 && y <= 525)
 			return true;
-		else if (x == 525 && y >= 375 && y <= 650)
+		else if (x == 100 && y >= -25 && y <= 450)
 			return true;
-		else if (x >= 375 && x <= 475 && y >= 375 && y <= 650)
-			return true;
-		else if (x == 425 && y >= 675 && y <= 800)
-			return true;
-		else if (x >= 150 && x <= 350 && y >= 375 && y <= 575)
-			return true;
-		else if (x >= 150 && x <= 325 && y == 600)
-			return true;
-		else if (x >= 175 && x <= 325 && y >= 625 && y <= 650)
-			return true;
-		else if (x == 500 && x >= 375 && y <= 575)
-			return true;
-		else if (x == 550 && y >= 375 && y <= 650)
-			return true;
-		else if (x >= 175 && x <= 500 && y == 275)
-			return true;
-		else if (x >= 325 && x <= 500 && y >= 200 && y <= 275)
-			return true;
-		else if (x == 425 && y == 175)
-			return true;
-		else
-			return false;
-	}
-	else if (window == 4) {
-		if (x == 675 && y >= 425 && y <= 550)
-			return true;
-		else if (x >= 525 && x <= 825 && y >= 300 && y <= 400)
-			return true;
-		else if (x >= 350 && x <= 500 && y == 400)
-			return true;
-		else if (x == 325 && y == 400)
-			return true;
-		else if (x >= 325 && x <= 400 && y >= 425 && y <= 675)
-			return true;
-		else if (x >= 150 && x <= 300 && y == 675)
-			return true;
-		else if (x >= 150 && x <= 300 && y == 450)
-			return true;
-		else if (x >= 50 && x <= 125 && y >= 200 && y <= 675)
-			return true;
-		else if (x >= 150 && x <= 550 && y >= 200 && y <= 250)
-			return true;
-		else if (x == 325 && y >= 275 && y <= 350)
-			return true;
-		else if (x >= 450 && x <= 550 && y >= 150 && y <= 175)
-			return true;
-		else if (x >= 575 && x <= 700 && y == 150)
-			return true;
-		else if (x >= 700 && x <= 825 && y == 200)
-			return true;
-		else if (x == 700 && y == 175)
-			return true;
-		else if (x == 800 && y == 175)
-			return true;
-		else if (x == 825 && y == 175)
-			return true;
-		else if (x >= 150 && x <= 300 && y == 475)
-			return true;
-		else if (x == 525 && y == 275)
-			return true;
-		else if (x == 550 && y == 275)
+		else if (x == 750 && y >= -25 && y <= 450)
 			return true;
 		else
 			return false;
