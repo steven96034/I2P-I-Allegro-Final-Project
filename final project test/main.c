@@ -60,6 +60,8 @@ ALLEGRO_SAMPLE *Bossmusic = NULL;
 ALLEGRO_SAMPLE *Dungeonmusic = NULL;
 ALLEGRO_SAMPLE *victory = NULL;
 ALLEGRO_SAMPLE *defeated = NULL;
+ALLEGRO_SAMPLE *strikesound = NULL; 
+ALLEGRO_SAMPLE *strikesound2 = NULL;
 
 //bgm id
 ALLEGRO_SAMPLE_ID title_bgm_id = { 0 };
@@ -331,6 +333,8 @@ void load_data() {
 	defeated = al_load_sample("defeated.mp3");
 	if (!defeated)
 		game_abort("failed to load bgm: defeated");
+	strikesound = al_load_sample("strike2.mp3");
+	strikesound2 = al_load_sample("strike sound.mp3");
 
 	//se
 
@@ -949,10 +953,12 @@ void on_key_down(int keycode) {
 				man.armour = card1.armour + man.armour;
 				man.atk = card1.damage;
 				man.buff = card1.vulnerable;
+				al_play_sample(strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 				printf("Use card1!\n");
 				if (stage == 1) {
 					if (man.buff >= 1)man.buff--;
 					louse.hp = louse.hp - man.atk - man.buff*man.atk;
+					
 					if (louse.hp <= 0) {
 						man.money = man.money + louse.money;
 						money = man.money;
@@ -1083,7 +1089,7 @@ void on_key_down(int keycode) {
 				man.armour = card2.armour + man.armour;
 				man.atk = card2.damage;
 				man.buff = card2.vulnerable;
-
+				al_play_sample(strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 				printf("Use card2!\n");
 				if (stage == 1) {
 					if (man.buff >= 1)man.buff--;
@@ -1219,6 +1225,7 @@ void on_key_down(int keycode) {
 				man.armour = card3.armour + man.armour;
 				man.atk = card3.damage;
 				man.buff = card3.vulnerable;
+				al_play_sample(strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 				printf("Use card3!\n");
 				if (stage == 1) {
 					if (man.buff >= 1)man.buff--;
@@ -1354,6 +1361,7 @@ void on_key_down(int keycode) {
 				man.armour = card4.armour + man.armour;
 				man.atk = card4.damage;
 				man.buff = card4.vulnerable;
+				al_play_sample(strikesound, 3.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 				printf("Use card4!\n");
 
 				if (stage == 1) {
@@ -1488,6 +1496,7 @@ void on_key_down(int keycode) {
 				man.armour = card5.armour + man.armour;
 				man.atk = card5.damage;
 				man.buff = card5.vulnerable;
+				al_play_sample(strikesound, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 				printf("Use card5!");
 				if (stage == 1) {
 					if (man.buff >= 1)man.buff--;
@@ -1716,7 +1725,7 @@ void event_window() {
 	else if (judge_next_window == 3) {
 		if (window == 0) {
 			if (character1.y == -25) {
-				if(tower==5) {
+				if(tower==1) {
 					judge_next_window = 2;
 					window = 1;
 					stage = 4;

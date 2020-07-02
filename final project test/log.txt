@@ -1,1 +1,2 @@
-failed to load image: dungeon
+INN_bgm sample plays error.
+
