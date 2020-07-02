@@ -36,8 +36,10 @@ ALLEGRO_BITMAP *Potion1 = NULL;
 ALLEGRO_BITMAP *Potion2 = NULL;
 ALLEGRO_BITMAP *Potion3 = NULL;
 ALLEGRO_BITMAP *Potion4 = NULL;
-
-
+ALLEGRO_BITMAP *POtion1 = NULL;
+ALLEGRO_BITMAP *POtion2 = NULL;
+ALLEGRO_BITMAP *POtion3 = NULL;
+ALLEGRO_BITMAP *POtion4 = NULL;
 
 //keyboard
 ALLEGRO_KEYBOARD_STATE keyState;
@@ -80,40 +82,43 @@ ALLEGRO_BITMAP *dungeon_map = NULL;
 ALLEGRO_BITMAP* backgroud = NULL;
 ALLEGRO_BITMAP* Board = NULL;
 ALLEGRO_BITMAP* hero = NULL;
+
 //mon
 ALLEGRO_BITMAP* Chosen = NULL;
 ALLEGRO_BITMAP* Cultist = NULL;
 ALLEGRO_BITMAP* Louse = NULL;
+
 //card
 ALLEGRO_BITMAP* Bash = NULL;
 ALLEGRO_BITMAP* Cleave = NULL;
 ALLEGRO_BITMAP* Defend = NULL;
 ALLEGRO_BITMAP* Ironwave = NULL;
 ALLEGRO_BITMAP* Strike = NULL;
+
 //setting of Boss
 ALLEGRO_BITMAP* Boss = NULL;
 ALLEGRO_BITMAP* Bossroom = NULL;
 
 //font
 ALLEGRO_FONT *menu_font = NULL;
-ALLEGRO_FONT* font;
-
+ALLEGRO_FONT *font = NULL;
+ALLEGRO_FONT *title_font_a = NULL;
+ALLEGRO_FONT *title_font_b = NULL;
 
 
 
 //Custom Definition
 const char *title = "Final Project 108030001 108030027";
 const float FPS = 60;
-
 const int WIDTH = 900;
 const int HEIGHT = 900;
 const int SCREEN_W = 900;
 const int SCREEN_H = 900;
 
-
 //set the game direction
 int turn = 1;
 int tower=1;
+
 typedef struct character
 {
 	int x;
@@ -121,7 +126,6 @@ typedef struct character
 	ALLEGRO_BITMAP *image_path;
 
 }Character;
-
 
 Character character1;
 Character character2;
@@ -170,7 +174,6 @@ card potion2;
 card potion3;
 card potion4;
 
-
 //set the random
 card card1;
 card card2;
@@ -178,9 +181,8 @@ card card3;
 card card4;
 card card5;
 
-
-//set the monsters
-mon  louse;           // hp;atk;interval;money;
+//set the monsters  // hp;atk;interval;money;
+mon  louse;           
 mon  cultist;
 mon  chosen;
 mon boss;
@@ -202,7 +204,6 @@ int message_number = 0;
 int menu_number_chose = 0;
 
 
-
 bool pop_up_window = false;
 bool check_boundary(int x, int y);
 bool check_purchase = false;
@@ -215,12 +216,11 @@ bool dir = true; //true: left, false: right
 bool key_state[ALLEGRO_KEY_MAX];
 
 float x, y;
-
-
+int check_mana();
 void on_key_down(int keycode);
+void resetmonster();
 
 void game_abort(const char* format, ...);
-//void show_err_msg(int msg);
 void game_init();
 void load_data();
 void game_set();
@@ -230,24 +230,15 @@ void event_window();
 int game_run();
 void game_destroy();
 
-void game_update();
-
 void game_log(const char* format, ...);
 void game_vlog(const char* format, va_list arg);
 
-void menu_run();
-void grocerystore_run();
-
-void resetmonster();
-//void weaponstore_run();
-//void defensewearstore_run();
-
-bool pnt_in_rect(int px, int py, int x, int y, int w, int h);
 
 //Main Status
 int money = 1000;//set initial amount
 int hp_max = 50;//set initial amount
 int hp_now = 40;//set initial amount
+
 //Main Inventory
 int amount_of_Healing_Potion = 0;
 int amount_of_An_One_Thousand_Dollar_Paper_Banknote = 0;
@@ -256,7 +247,6 @@ int amount_of_Gods_Sword_Plastic_Bottle = 0;
 int amount_of_UnderArmor = 0;
 int amount_of_Maples_Shield = 0;
 int amount_of_The_Boardshort_Stuffed_with_One_Million_Dollars = 0;
-
 
 
 int main(int argc, char *argv[]) {
@@ -274,12 +264,6 @@ int main(int argc, char *argv[]) {
 	game_destroy();
 	return 0;
 }
-
-/*void show_err_msg(int msg) {
-	fprintf(stderr, "unexpected msg: %d\n", msg);
-	game_destroy();
-	exit(9);
-}*/
 
 void game_init() {
 	if (!al_init()) {
@@ -317,43 +301,57 @@ void game_init() {
 	// Register event
 	al_register_event_source(event_queue, al_get_display_event_source(display));
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
-	/*al_register_event_source(event_queue, al_get_timer_event_source(game_update_timer));
-	al_start_timer(game_update_timer);
-
-	game_update_timer = al_create_timer(1.0f / FPS);
-	if (!game_update_timer)
-		game_abort("failed to create timer");*/
 }
 
 void load_data() {
 	//bgm
 	title_bgm = al_load_sample("Undertale OST_ 002 - Start Menu.mp3");
+	if (!title_bgm)
+		game_abort("failed to load bgm: title_bgm");
 	Bossmusic = al_load_sample("battle in boss.mp3");
+	if (!Bossmusic)
+		game_abort("failed to load bgm: Bossmusic");
 	Dungeonmusic = al_load_sample("battle.mp3");
+	if (!Dungeonmusic)
+		game_abort("failed to load bgm: Dungeonmusic");
 	village_bgm = al_load_sample("01_True.mp3");
+	if (!village_bgm)
+		game_abort("failed to load bgm: village_bgm");
 	INN_bgm = al_load_sample("Undertale OST_ 012 - Home.mp3");
-	if (INN_bgm == NULL)
-		game_abort("INN_bgm loaded error.\n");
+	if (!INN_bgm)
+		game_abort("failed to load bgm: INN_bgm");
 	grocerystore_bgm = al_load_sample("Undertale OST_ 023 - Shop.mp3");
+	if (!grocerystore_bgm)
+		game_abort("failed to load bgm: grocerystore_bgm");
 	victory = al_load_sample("victory.mp3");
+	if (!victory)
+		game_abort("failed to load bgm: victory");
 	defeated = al_load_sample("defeated.mp3");
+	if (!defeated)
+		game_abort("failed to load bgm: defeated");
 
 	//se
 
 	//map
 	title_bg = al_load_bitmap("menu.jpg");
+	if (!title_bg)
+		game_abort("failed to load map: title_bg");
 	village_bg = al_load_bitmap("map_village.png");
+	if (!village_bg)
+		game_abort("failed to load map: village_bg");
 	INN_bg = al_load_bitmap("map_village_INN.png");
+	if (!INN_bg)
+		game_abort("failed to load map: INN_bg");
 	grocerystore_bg = al_load_bitmap("map_village_grocerystore.jpg");
-	//load the background
+	if (!grocerystore_bg)
+		game_abort("failed to load map: grocerystore_bg");
+	//load the battle background
 	backgroud = al_load_bitmap("dungeon.jpg");
 	if (!backgroud)
 		game_abort("failed to load image: dungeon");
-
 	Board = al_load_bitmap("Board.jpg");
 	if (!Board)
 		game_abort("failed to load image:  Board");
-
 	hero = al_load_bitmap("hero.png");
 	if (!hero)
 		game_abort("failed to load image: hero");
@@ -364,47 +362,86 @@ void load_data() {
 
 	//picture
 	Healing_Potion = al_load_bitmap("Healing_Potion.jpg");
+	if (!Healing_Potion)
+		game_abort("failed to load picture: Healing_Potion");
 	An_One_Thousand_Dollar_Paper_Banknote = al_load_bitmap("An_One_Thousand_Dollar_Paper_Banknote.jpg");
+	if (!An_One_Thousand_Dollar_Paper_Banknote)
+		game_abort("failed to load picture: An_One_Thousand_Dollar_Paper_Banknote");
 	Samurai_Sword = al_load_bitmap("Samurai_Sword.jpg");
+	if (!Samurai_Sword)
+		game_abort("failed to load picture: Samurai_Sword");
 	Gods_Sword_Plastic_Bottle = al_load_bitmap("Gods_Sword_Plastic_Bottle.jpg");
+	if (!Gods_Sword_Plastic_Bottle)
+		game_abort("failed to load picture: Gods_Sword_Plastic_Bottle");
 	UnderArmor = al_load_bitmap("UnderArmor.jpg");
+	if (!UnderArmor)
+		game_abort("failed to load picture: UnderArmor");
 	Maples_Shield = al_load_bitmap("Maples_Shield.jpg");
+	if (!Maples_Shield)
+		game_abort("failed to load picture: Maples_Shield");
 	The_Boardshort_Stuffed_with_One_Million_Dollars = al_load_bitmap("The_Boardshort_Stuffed_with_One_Million_Dollars.jpg");
-	//Light_Dot = al_load_bitmap("Light_Dot.png");
+	if (!The_Boardshort_Stuffed_with_One_Million_Dollars)
+		game_abort("failed to load picture: The_Boardshort_Stuffed_with_One_Million_Dollars");
 	Potion1 = al_load_bitmap("potion1.png");
+	if (!Potion1)
+		game_abort("failed to load picture: Potion1");
 	Potion2 = al_load_bitmap("potion2.png");
+	if (!Potion2)
+		game_abort("failed to load picture: Potion2");
 	Potion3 = al_load_bitmap("potion3.png");
+	if (!Potion3)
+		game_abort("failed to load picture: Potion3");
 	Potion4 = al_load_bitmap("potion4.png");
+	if (!Potion4)
+		game_abort("failed to load picture: Potion4");
+	POtion1 = al_load_bitmap("potion_big1.png");
+	if (!POtion1)
+		game_abort("failed to load picture: POtion1");
+	POtion2 = al_load_bitmap("potion_big2.png");
+	if (!POtion2)
+		game_abort("failed to load picture: POtion2");
+	POtion3 = al_load_bitmap("potion_big3.png");
+	if (!POtion3)
+		game_abort("failed to load picture: POtion3");
+	POtion4 = al_load_bitmap("potion_big4.png");
+	if (!POtion4)
+		game_abort("failed to load picture: POtion4");
 	victorypicture = al_load_bitmap("victorypicture.jpg");
 	if (!victorypicture)
 		game_abort("failed to load picture: victorypicture");
 	defeatedpicture = al_load_bitmap("defeatedpicture.png");
+	if (!defeatedpicture)
+		game_abort("failed to load picture: defeatedpicture");
 
 	//font
 	menu_font = al_load_ttf_font("NotoSansCJKtc-Medium.otf", 20, 0);
+	if (!menu_font)
+		game_abort("failed to load font: menu_font");
 	font = al_load_ttf_font("pirulen.ttf", 12, 0);
-	//load the font
 	if (!font)
 		game_abort("failed to load font: pirulen.ttf");
+	title_font_a = al_load_ttf_font("PAPYRUS.ttf",42, 2);
+	if (!title_font_a)
+		game_abort("failed to load font: title_font_a");
+	title_font_b = al_load_ttf_font("PAPYRUS.ttf", 16, 2);
+	if (!title_font_b)
+		game_abort("failed to load font: title_font_b");
+
 
 	//load the mon
 	Chosen = al_load_bitmap("Chosen.png");
 	if (!Chosen)
 		game_abort("failed to load image: Chosen");
-
 	Cultist = al_load_bitmap("Cultist.png");
 	if (!Cultist)
 		game_abort("failed to load image: Cultist");
-
 	Louse = al_load_bitmap("Louse.png");
 	if (!Louse)
 		game_abort("failed to load image: Louse");
-
 	//Boss
 	Boss = al_load_bitmap("Boss.png");
 	if (!Boss)
 		game_abort("failed to load image: Boss");
-
 	Bossroom = al_load_bitmap("Bossroom.jpg");
 	if (!Bossroom)
 		game_abort("failed to load image: Bossroom");
@@ -413,24 +450,18 @@ void load_data() {
 	Bash = al_load_bitmap("Bash.png");
 	if (!Bash)
 		game_abort("failed to load image: Bash");
-
 	Cleave = al_load_bitmap("Cleave.png");
 	if (!Cleave)
 		game_abort("failed to load image: Cleave");
-
 	Defend = al_load_bitmap("Defend.png");
 	if (!Defend)
 		game_abort("failed to load image: Defend");
-
 	Ironwave = al_load_bitmap("Ironwave.png");
 	if (!Ironwave)
 		game_abort("failed to load image: Ironwave");
-
 	Strike = al_load_bitmap("Strike.png");
 	if (!Strike)
 		game_abort("failed to load image: Strike");
-
-
 }
 
 void game_set() {
@@ -554,26 +585,19 @@ card  shuffle(int x) {
 		y = bash;
 		y.index = 1;
 		return y;
-
-
 	}
-
 
 	if (x >= 4 && x <= 6) {
 		card y;
 		y = cleave;
 		y.index = 2;
-
 		return y;
-
 	}
-
 
 	if (x >= 7 && x <= 11) {
 		card y;
 		y = defend;
 		y.index = 3;
-
 		return y;
 	}
 
@@ -582,8 +606,6 @@ card  shuffle(int x) {
 		y = ironwave;
 		y.index = 4;
 		return y;
-
-
 	}
 
 	if (x >= 16 && x <= 20) {
@@ -592,8 +614,6 @@ card  shuffle(int x) {
 		y.index = 5;
 		return y;
 	}
-
-
 }
 
 
@@ -603,29 +623,16 @@ int random(void) {
 	int a;
 	a = (rand() % 20) + 1;
 	printf("%d\n", a);
-
 	return a;
 }
 
 void game_begin() {
 	load_data();
-	/* Load sound
-	if (!song) {
-		printf("Audio clip sample not loaded!\n");
-		game_abort("Audio clip sample loaded error.\n");
-	}*/
-	// Loop the song until the display closes
 	al_play_sample(title_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
-
-	//haven't solve the problem that change the background of title scene
 	al_draw_bitmap(title_bg, 0, 0, 0);
-	//al_clear_to_color(al_map_rgb(100, 100, 100));
-
-	// Load and draw text
-	al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 - 300, ALLEGRO_ALIGN_CENTRE,
-		"UNTITLED");
-
-	al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 200, ALLEGRO_ALIGN_CENTRE,
+	al_draw_text(title_font_a, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 - 300, ALLEGRO_ALIGN_CENTRE,
+		"Monster Chaser");
+	al_draw_text(title_font_b, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 200, ALLEGRO_ALIGN_CENTRE,
 		"Press  'Enter'  to start");
 	al_draw_rectangle(WIDTH / 2 - 150, 645, WIDTH / 2 + 150, 685, al_map_rgb(255, 255, 255), 0);
 	al_flip_display();
@@ -652,9 +659,9 @@ int process_event() {
 		if (next) next = false;
 		else ture = true;
 	}
-	on_key_down(event.keyboard.keycode);
 	// Keyboard
-
+	on_key_down(event.keyboard.keycode);
+	
 	// Shutdown our program
 	if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 		return GAME_TERMINATE;
@@ -666,18 +673,13 @@ int process_event() {
 void resetmonster() {
 	if (boss.hp <= 0) {
 		al_stop_sample(&Dungeonmusic_id);
-		al_play_sample(victory, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
-		while(1){
-			al_draw_bitmap(victorypicture, 0, 0, 0);
-			al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
-			al_draw_text(font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
-				"Victory, tap enter to continue.");
-			al_flip_display();
-			process_event;
-		}
-		
-
-
+		al_play_sample(victory, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);		
+		al_draw_bitmap(victorypicture, 0, 0, 0);
+		al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
+		al_draw_text(title_font_a, al_map_rgb(125, 255, 125), WIDTH / 2 , HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
+			"You win!!!");
+		al_flip_display();
+		process_event;
 	}
 	louse.hp = 75;
 	louse.atk = 10;
@@ -688,7 +690,6 @@ void resetmonster() {
 	cultist.atk = 20;
 	cultist.interval = 2;
 	cultist.money = 200;
-
 
 	chosen.hp = 210;
 	chosen.atk = 35;
@@ -705,9 +706,11 @@ void resetmonster() {
 }
 
 void on_key_down(int keycode) {
-	if (boss.hp <= 0) {
-		if (keycode == ALLEGRO_KEY_ENTER)
-			game_begin();
+	if ((boss.hp <= 0 || man.hp <= 0) && keycode == ALLEGRO_KEY_ENTER) {
+		window = 1;
+		judge_next_window = 0;
+		stage = 1;
+		game_begin();		
 	}
 	if (window == 1 && judge_next_window == 0) {
 		if (keycode == ALLEGRO_KEY_ENTER)
@@ -722,53 +725,25 @@ void on_key_down(int keycode) {
 					printf("(%d,%d)\n", character1.x, character1.y);
 				}
 				break;
-				/*case ALLEGRO_KEY_UP:
-					if (character1.y > 0 && check_boundary(character1.x, character1.y - 25)) {
-						character1.y -= 25;
-						printf("(%d,%d)\n", character1.x, character1.y);
-					}
-					break;*/
 			case ALLEGRO_KEY_S:
 				if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
 					character1.y += 25;
 					printf("(%d,%d)\n", character1.x, character1.y);
 				}
 				break;
-				/*case ALLEGRO_KEY_DOWN:
-					if (character1.y < HEIGHT - 100 && check_boundary(character1.x, character1.y + 25)) {
-						character1.y += 25;
-						printf("(%d,%d)\n", character1.x, character1.y);
-					}
-					break;*/
 			case ALLEGRO_KEY_A:
 				if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
 					character1.x -= 25;
 					printf("(%d,%d)\n", character1.x, character1.y);
 				}
 				break;
-				/*case ALLEGRO_KEY_LEFT:
-					if (character1.x > 0 && check_boundary(character1.x - 25, character1.y)) {
-						character1.x -= 25;
-						printf("(%d,%d)\n", character1.x, character1.y);
-					}
-					break;*/
 			case ALLEGRO_KEY_D:
 				if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
 					character1.x += 25;
 					printf("(%d,%d)\n", character1.x, character1.y);
 				}
-				break;
-				/*case ALLEGRO_KEY_RIGHT:
-					if (character1.x < WIDTH - 75 && check_boundary(character1.x + 25, character1.y)) {
-						character1.x += 25;
-						printf("(%d,%d)\n", character1.x, character1.y);
-					}
-					break;*/
-			case ALLEGRO_KEY_X:
-				menu_run();
 			}
 		}
-
 		else if (window == 3 && character1.y == 175) {
 			if (keycode == ALLEGRO_KEY_ENTER) {
 				pop_up_window = false;
@@ -797,28 +772,14 @@ void on_key_down(int keycode) {
 				message_number = 5;
 				printf("just before in no scene~~~\n");
 			}
-			/*else if (message_number == 4 && keycode == ALLEGRO_KEY_ENTER) {
-				if (money_shortage == false) {
-					message_number = 2;
-				}
-				else
-					message_number = 5;
-			}*/
 			else if (message_number == 11) {
 				if (money >= 81000)
 					money -= 81000;
 				else
-					money -= 100;
+					money -= 1200;
 				hp_now = hp_max;
 				message_number = 2;
 			}
-			//else if (message_number == 12)
-			/*else if (message_number == 12 && keycode == ALLEGRO_KEY_ENTER) {
-				message_number = 0;
-				pop_up_window = false;
-				printf("final~~12~~\n");
-				character1.y += 25;
-			}*/
 			else if (message_number == 5 && keycode == ALLEGRO_KEY_ENTER) {
 				message_number = 0;
 				pop_up_window = false;
@@ -906,14 +867,6 @@ void on_key_down(int keycode) {
 			}
 		}
 	}
-
-
-
-	
-
-
-
-
 	//battle
 	else if (judge_next_window == 2) {
 		//attack from heros!
@@ -923,17 +876,12 @@ void on_key_down(int keycode) {
 			card3 = defend;
 			card4 = ironwave;
 			card5 = strike;
-
 		}
-
 		if (keycode == ALLEGRO_KEY_Q && potion1.valid > 0) {
 
 			potion1.valid = potion1.valid - 1;
 			man.buff = man.buff + 4;
-
-
 		}
-
 		if (keycode == ALLEGRO_KEY_W && potion2.valid > 0) {
 			potion2.valid = potion2.valid - 1;
 			if (stage == 1)louse.hp = louse.hp - 100;
@@ -954,7 +902,6 @@ void on_key_down(int keycode) {
 				character1.y = 800;
 				resetmonster();
 			}
-
 			if (stage == 3)chosen.hp = chosen.hp - 100;
 			if (chosen.hp <= 0) {
 				man.money = man.money + chosen.money;
@@ -964,7 +911,6 @@ void on_key_down(int keycode) {
 				character1.y = 800;
 				resetmonster();
 			}
-
 			if (stage == 4)boss.hp = boss.hp - 100;
 			if (boss.hp <= 0) {
 				man.money = man.money + boss.money;
@@ -973,35 +919,23 @@ void on_key_down(int keycode) {
 				resetmonster();
 				//win
 			}
-
-
 		}
-
 		if (keycode == ALLEGRO_KEY_E && potion3.valid > 0) {
 			potion3.valid = potion3.valid - 1;
 			man.armour = man.armour + potion3.armour;
-
 		}
 		if (keycode == ALLEGRO_KEY_R && potion4.valid > 0) {
 			potion4.valid = potion4.valid - 1;
 			man.hp = man.hp + potion4.aoe;
-
-
 		}
 
-
-
 		if (keycode == ALLEGRO_KEY_1) {
-
 			if (man.mana - card1.cost >= 0 && card1.valid == 1) {
-
 				card1.valid = 0;
 				man.mana = man.mana - card1.cost;
 				man.armour = card1.armour + man.armour;
 				man.atk = card1.damage;
 				man.buff = card1.vulnerable;
-
-
 				printf("Use card1!\n");
 				if (stage == 1) {
 					if (man.buff >= 1)man.buff--;
@@ -1014,7 +948,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1029,14 +963,8 @@ void on_key_down(int keycode) {
 						if (louse.interval == 0) {
 							man.hp = man.hp - louse.atk + man.armour;
 							louse.interval = 1;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 2) {
 					if (man.buff >= 1)man.buff--;
@@ -1049,7 +977,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0||(man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1064,15 +992,8 @@ void on_key_down(int keycode) {
 						if (cultist.interval == 0) {
 							man.hp = man.hp - cultist.atk + man.armour;
 							cultist.interval = 2;
-
-
 						}
-
-
 					}
-
-
-
 				}
 				if (stage == 3) {
 					if (man.buff >= 1)man.buff--;
@@ -1085,7 +1006,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1100,15 +1021,8 @@ void on_key_down(int keycode) {
 						if (chosen.interval == 0) {
 							man.hp = man.hp - chosen.atk + man.armour;
 							chosen.interval = 3;
-
-
 						}
-
-
 					}
-
-
-
 				}
 				if (stage == 4) {
 					if (man.buff >= 1)man.buff--;
@@ -1120,7 +1034,7 @@ void on_key_down(int keycode) {
 						resetmonster();
 						//win
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1134,28 +1048,15 @@ void on_key_down(int keycode) {
 						if (boss.interval == 0) {
 							man.hp = man.hp - boss.atk + man.armour;
 							boss.interval = 4;
-
-
 						}
-
-
-
-
 					}
-
-
-
 				}
-
-
 			}
 			else if (bash.valid == 0 && man.mana > 0)printf("You have used the card1!\n");
 			else if (man.mana <= 0) {
 
 				printf("You have no mana!\n");
 			}
-
-
 		}
 		else if (keycode == ALLEGRO_KEY_2) {
 			if (man.mana - card2.cost >= 0 && card2.valid == 1) {
@@ -1178,7 +1079,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 
 						turn++;
 						man.mana = 4;
@@ -1193,13 +1094,8 @@ void on_key_down(int keycode) {
 						if (louse.interval == 0) {
 							man.hp = man.hp - louse.atk + man.armour;
 							louse.interval = 1;
-
-
 						}
 					}
-
-
-
 				}
 				if (stage == 2) {
 					if (man.buff >= 1)man.buff--;
@@ -1212,7 +1108,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1227,14 +1123,8 @@ void on_key_down(int keycode) {
 						if (cultist.interval == 0) {
 							man.hp = man.hp - cultist.atk + man.armour;
 							cultist.interval = 2;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 3) {
 					if (man.buff >= 1)man.buff--;
@@ -1247,7 +1137,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1262,14 +1152,8 @@ void on_key_down(int keycode) {
 						if (chosen.interval == 0) {
 							man.hp = man.hp - chosen.atk + man.armour;
 							chosen.interval = 3;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 4) {
 					if (man.buff >= 1)man.buff--;
@@ -1281,7 +1165,7 @@ void on_key_down(int keycode) {
 						resetmonster();
 						//win scene
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1296,15 +1180,8 @@ void on_key_down(int keycode) {
 						if (boss.interval == 0) {
 							man.hp = man.hp - boss.atk + man.armour;
 							boss.interval = 4;
-
-
 						}
-
-
 					}
-
-
-
 				}
 			}
 			else if (cleave.valid == 0 && man.mana > 0)printf("You have used the card2!\n");
@@ -1334,7 +1211,7 @@ void on_key_down(int keycode) {
 						resetmonster();
 					}
 					
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 
 						turn++;
 						man.mana = 4;
@@ -1349,13 +1226,8 @@ void on_key_down(int keycode) {
 						if (louse.interval == 0) {
 							man.hp = man.hp - louse.atk + man.armour;
 							louse.interval = 1;
-
-
 						}
 					}
-
-
-
 				}
 				if (stage == 2) {
 					if (man.buff >= 1)man.buff--;
@@ -1368,7 +1240,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1383,14 +1255,8 @@ void on_key_down(int keycode) {
 						if (cultist.interval == 0) {
 							man.hp = man.hp - cultist.atk + man.armour;
 							cultist.interval = 2;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 3) {
 					if (man.buff >= 1)man.buff--;
@@ -1403,7 +1269,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1418,14 +1284,8 @@ void on_key_down(int keycode) {
 						if (chosen.interval == 0) {
 							man.hp = man.hp - chosen.atk + man.armour;
 							chosen.interval = 3;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 4) {
 					if (man.buff >= 1)man.buff--;
@@ -1437,7 +1297,7 @@ void on_key_down(int keycode) {
 						resetmonster();
 						//win scene
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1452,16 +1312,9 @@ void on_key_down(int keycode) {
 						if (boss.interval == 0) {
 							man.hp = man.hp - boss.atk + man.armour;
 							boss.interval = 4;
-
-
 						}
-
 					}
-
-
-
 				}
-
 			}
 			else if (defend.valid == 0 && man.mana > 0)printf("You have used the card3!\n");
 			else if (man.mana <= 0) {
@@ -1489,7 +1342,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 
 						turn++;
 						man.mana = 4;
@@ -1504,14 +1357,8 @@ void on_key_down(int keycode) {
 						if (louse.interval == 0) {
 							man.hp = man.hp - louse.atk + man.armour;
 							louse.interval = 1;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 2) {
 					if (man.buff >= 1)man.buff--;
@@ -1524,7 +1371,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1540,11 +1387,7 @@ void on_key_down(int keycode) {
 							man.hp = man.hp - cultist.atk + man.armour;
 							cultist.interval = 2;
 						}
-
 					}
-
-
-
 				}
 				if (stage == 3) {
 					if (man.buff >= 1)man.buff--;
@@ -1557,7 +1400,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1572,14 +1415,8 @@ void on_key_down(int keycode) {
 						if (chosen.interval == 0) {
 							man.hp = man.hp - chosen.atk + man.armour;
 							chosen.interval = 3;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 4) {
 					if (man.buff >= 1)man.buff--;
@@ -1591,7 +1428,7 @@ void on_key_down(int keycode) {
 						resetmonster();
 						//win scene
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1605,25 +1442,15 @@ void on_key_down(int keycode) {
 						if (boss.interval == 0) {
 							man.hp = man.hp - boss.atk + man.armour;
 							boss.interval = 4;
-
-
 						}
-
 					}
-
-
-
 				}
-
 			}
 			else if (ironwave.valid == 0 && man.mana > 0)printf("You have used the card4!\n");
 			else if (man.mana <= 0) {
 
 				printf("You have no mana!\n");
 			}
-
-
-
 		}
 		else if (keycode == ALLEGRO_KEY_5) {
 			if (man.mana - card5.cost >= 0 && card5.valid == 1) {
@@ -1644,7 +1471,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 
 						turn++;
 						man.mana = 4;
@@ -1659,17 +1486,8 @@ void on_key_down(int keycode) {
 						if (louse.interval == 0) {
 							man.hp = man.hp - louse.atk + man.armour;
 							louse.interval = 1;
-
-
 						}
-
-
 					}
-
-
-
-
-
 				}
 				if (stage == 2) {
 					if (man.buff >= 1)man.buff--;
@@ -1682,7 +1500,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1697,14 +1515,8 @@ void on_key_down(int keycode) {
 						if (cultist.interval == 0) {
 							man.hp = man.hp - cultist.atk + man.armour;
 							cultist.interval = 2;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 3) {
 					if (man.buff >= 1)man.buff--;
@@ -1717,7 +1529,7 @@ void on_key_down(int keycode) {
 						character1.y = 800;
 						resetmonster();
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1732,14 +1544,8 @@ void on_key_down(int keycode) {
 						if (chosen.interval == 0) {
 							man.hp = man.hp - chosen.atk + man.armour;
 							chosen.interval = 3;
-
-
 						}
-
 					}
-
-
-
 				}
 				if (stage == 4) {
 					if (man.buff >= 1)man.buff--;
@@ -1748,11 +1554,10 @@ void on_key_down(int keycode) {
 						man.money = man.money + boss.money;
 						judge_next_window = 3;
 						resetmonster();
-						window = 1;//win scene
-
-						//////////
+						window = 1;
+						//win scene
 					}
-					if (man.mana <= 0) {
+					if (man.mana <= 0 || (man.mana == 1 && check_mana() == 0)) {
 						man.mana = 4;
 						man.armour = 0;
 						man.atk = 0;
@@ -1767,14 +1572,8 @@ void on_key_down(int keycode) {
 						if (boss.interval == 0) {
 							man.hp = man.hp - boss.atk + man.armour;
 							boss.interval = 4;
-
-
 						}
-
 					}
-
-
-
 				}
 			}
 			else if (strike.valid == 0 && man.mana > 0)printf("You have used the card5!\n");
@@ -1782,17 +1581,10 @@ void on_key_down(int keycode) {
 
 				printf("You have no mana!\n");
 			}
-
-
-
 		}
 		else if (keycode == ALLEGRO_KEY_ESCAPE) {
-
-
 			printf("You can't escape from battle!\n");
 		}
-
-
 	}
 	if (judge_next_window == 3) {
 		if (window == 0) {
@@ -1821,8 +1613,6 @@ void on_key_down(int keycode) {
 					printf("(%d,%d)\n", character1.x, character1.y);
 				}
 				break;
-			case ALLEGRO_KEY_X:
-				menu_run();
 			}
 		}
 	}
@@ -1835,9 +1625,7 @@ void event_window() {
 		if (window == 2) {//in the village
 			if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
 				window = 3;
-				//al_draw_bitmap(INN_bg, 0, 0, 0);
 				al_stop_sample(&village_bgm_id);
-				//al_destroy_sample(village_bgm);
 				if (!al_play_sample(INN_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &INN_bgm_id))
 					game_abort("INN_bgm sample plays error.\n");
 				character1.x = WIDTH / 2 - 25;
@@ -1846,9 +1634,7 @@ void event_window() {
 			}
 			else if (character1.x == 300 - 200 && character1.y == HEIGHT - 150 - 75) {//walk into grocery store
 				window = 4;
-				//al_draw_bitmap(grocerystore_bg, 0, 0, 0);
 				al_stop_sample(&village_bgm_id);
-				//al_destroy_sample(village_bgm);
 				al_play_sample(grocerystore_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &grocerystore_bgm_id);
 				character1.x = 675;
 				character1.y = 800 - 275;
@@ -1862,23 +1648,16 @@ void event_window() {
 				al_stop_sample(&village_bgm_id);
 				al_play_sample(Dungeonmusic, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &Dungeonmusic_id);
 			}
-
-
-
-			//else if...
 		}
 		else if (window == 3) {
 			if (character1.x == WIDTH / 2 - 25 && character1.y == 800) {//from INN back to village
 				window = 2;
-				//al_draw_bitmap(village_bg, 0, 0, 0);
 				al_stop_sample(&INN_bgm_id);
-				//al_destroy_sample(INN_bgm);
 				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
 				character1.x = 300;
 				character1.y = HEIGHT - 150 - 50;
 				printf("In village:\n");
 			}
-
 			else if ((character1.x == 650 || character1.x == 675) && character1.y == 175) //INN 2nd floor
 				pop_up_window = true;
 			else if (character1.x == 425 && character1.y == 175)//fire place
@@ -1889,9 +1668,7 @@ void event_window() {
 		else if (window == 4) {
 			if (character1.y == 800 - 250 && character1.x == 675) {//from grocery store back to village
 				window = 2;
-				//al_draw_bitmap(village_bg, 0, 0, 0);
 				al_stop_sample(&grocerystore_bgm_id);
-				//al_destroy_sample(grocerystore_bgm);
 				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
 				character1.x = 300 - 200;
 				character1.y = HEIGHT - 150 - 50;
@@ -1899,39 +1676,16 @@ void event_window() {
 			}
 
 			else if (character1.x == 675 && character1.y == 300)
-				pop_up_window = true;
-			/*else if ((character1.x == 325 && character1.y == 350) || (character1.x == 350 && character1.y == 400)
-				|| (character1.x == 350 && character1.y == 375) || (character1.x == 325 && character1.y == 400)) {
-				pop_up_window = true;
-			}*/
+				pop_up_window = true;			
 		}
-
-		/*else if (window == 5) {
-			background = al_load_bitmap("map_village_bar.png");
-
-		}
-		else if (window == 6) {
-			background = al_load_bitmap("map_village_defensewearstore.png");
-
-		}
-		else if (window == 7) {
-			background = al_load_bitmap("map_village_weaponstore.png");
-
-		}
-		else if (window == 8) {
-			background = al_load_bitmap("map_village_specialhouse.png");
-
-		}*/
 	}
-
 	else if (judge_next_window == 3) {
 		if (window == 0) {
 			if (character1.y == -25) {
-				if(tower==1) {
+				if(tower==5) {
 					judge_next_window = 2;
 					window = 1;
 					stage = 4;
-
 				}
 				else {
 					int x = random() % 4 + 1;//random monster
@@ -1939,7 +1693,6 @@ void event_window() {
 						judge_next_window = 2;
 						window = 1;
 						stage = 1;
-
 					}
 					else if (x == 2) {
 						judge_next_window = 2;
@@ -1957,17 +1710,10 @@ void event_window() {
 						judge_next_window = 1;
 						window = 2;
 					}
-
-
-
-
-				}
-			
+				}		
 			}
 		}
-
 	}
-
 }
 
 int game_run() {
@@ -1981,15 +1727,11 @@ int game_run() {
 				al_stop_sample(&title_bgm_id);
 				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
 				// Setting Character
-				character1.x = 300;
-				character1.y = HEIGHT - 150;
-				character2.x = WIDTH + 100;
-				character2.y = HEIGHT / 2 - 280;
+				character1.x = 800;
+				character1.y = 100;
 				light_dot.x = 435;
 				light_dot.y = 235;
 				character1.image_path = al_load_bitmap("tower.png");
-				character2.image_path = al_load_bitmap("teemo_left.png");
-				character3.image_path = al_load_bitmap("teemo_right.png");
 				light_dot.image_path = al_load_bitmap("Light_Dot.png");
 
 				//Initialize Timer
@@ -2025,7 +1767,7 @@ int game_run() {
 							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
 								"Hotel Owner, Toriel:");
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-								"Hello, do you wanna sleep with me...?Oh...nothing...");
+								"Hello, welcome to my fantastic hotel!");
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
 								"Do you want to rest here?");
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 270, ALLEGRO_ALIGN_CENTRE,
@@ -2047,7 +1789,7 @@ int game_run() {
 							al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2 - 200, HEIGHT / 2 + 100, ALLEGRO_ALIGN_CENTRE,
 								"Hotel Owner, Toriel:");
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 150, ALLEGRO_ALIGN_CENTRE,
-								"You only need to pay $81000 for HEALing your HP.Or...for only $100.");
+								"You only need to pay $81000 for HEALing your HP.Or...for only $1200.");
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), WIDTH / 2, HEIGHT / 2 + 210, ALLEGRO_ALIGN_CENTRE,
 								"(press 'z' for YES and 'x' for NO)");
 							al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
@@ -2055,7 +1797,7 @@ int game_run() {
 							error = process_event();
 						}//press z for yes and x for no				
 						while (message_number == 2) {
-							//if (z) heal and reduce money    (remember to record)
+							//if (z) heal and reduce money 
 							al_draw_bitmap(INN_bg, 0, 0, 0);
 							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
 							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
@@ -2092,20 +1834,17 @@ int game_run() {
 							al_flip_display();
 							error = process_event();
 						}
-
 						while (message_number == 10) {
 							message_number = 2;
 						}
-
 						while (message_number == 4) {
-							if (money >= 100) {
+							if (money >= 1200) {
 								message_number = 11;
 								error = process_event();
 							}
 							else {
 								message_number = 12;
 							}
-
 						}
 						while (message_number == 12) {
 							al_draw_bitmap(INN_bg, 0, 0, 0);
@@ -2191,13 +1930,13 @@ int game_run() {
 								"You now have %d.", money);
 							al_draw_line(50, 175, 850, 175, al_map_rgb(0, 0, 0), 5);
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 200, ALLEGRO_ALIGN_LEFT,
-								"1.Healing Potion										$100");
+								"1.Healing Potion										$250");
 							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 200, ALLEGRO_ALIGN_LEFT,
-								"You now have %d.", amount_of_Healing_Potion);
+								"You now have %d.", potion4.valid);
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 250, ALLEGRO_ALIGN_LEFT,
-								"2.An 'One Thousand Dollar' Paper Banknote			    $1000");
+								"2.Shielding  Potion							        $100");
 							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 250, ALLEGRO_ALIGN_LEFT,
-								"You now have %d.", amount_of_An_One_Thousand_Dollar_Paper_Banknote);
+								"You now have %d.", potion3.valid);
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 300, ALLEGRO_ALIGN_LEFT,
 								"3.Samurai Sword										$500");
 							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 300, ALLEGRO_ALIGN_LEFT,
@@ -2207,13 +1946,13 @@ int game_run() {
 							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 350, ALLEGRO_ALIGN_LEFT,
 								"You now have %d.", amount_of_Gods_Sword_Plastic_Bottle);
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 400, ALLEGRO_ALIGN_LEFT,
-								"5.UnderArmor											$400");
+								"5.Debuff Potion										$300");
 							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 400, ALLEGRO_ALIGN_LEFT,
-								"You now have %d.", amount_of_UnderArmor);
+								"You now have %d.", potion1.valid);
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 450, ALLEGRO_ALIGN_LEFT,
-								"6.Maple's Shield										$100000");
+								"6.Harming Potion										$400");
 							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 450, ALLEGRO_ALIGN_LEFT,
-								"You now have %d.", amount_of_Maples_Shield);
+								"You now have %d.", potion2.valid);
 							al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 500, ALLEGRO_ALIGN_LEFT,
 								"7.The Boardshort Stuffed with One Million Dollars		$800");
 							al_draw_textf(menu_font, al_map_rgb(255, 255, 255), 675, 500, ALLEGRO_ALIGN_LEFT,
@@ -2221,24 +1960,24 @@ int game_run() {
 							al_draw_text(menu_font, al_map_rgb(0, 0, 0), 75, 125, ALLEGRO_ALIGN_LEFT,
 								"Press 'x' to exit.");
 							if (menu_number_chose == 1) {
-								al_draw_bitmap(Healing_Potion, 600, 575, 0);
+								al_draw_bitmap(POtion1, 600, 575, 0);
 								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
 									"1.Healing Potion");
 								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-									"Good medicine for those who gets hurt.");
+									"Max HP + 100 (in battle)");
 								if (check_purchase == true) {
 									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
 									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
 									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
 										"Do you really want to buy: Healing Potion * 1");
 									if (check_purchase_final == true) {
-										if (money >= 100) {
-											amount_of_Healing_Potion++;//inventory + 1
-											money -= 100;
+										if (money >= 250) {
+											potion4.valid++;//inventory + 1
+											money -= 250;
 											menu_number_chose = 0;
 											check_purchase = false;
 											check_purchase_final = false;
-											printf("amount_of_Healing_Potion + 1\n");
+											printf("potion4.valid + 1\n");
 										}
 										else {
 											money_shortage = true;
@@ -2251,24 +1990,24 @@ int game_run() {
 								}
 							}
 							else if (menu_number_chose == 2) {
-								al_draw_bitmap(An_One_Thousand_Dollar_Paper_Banknote, 575, 625, 0);
+								al_draw_bitmap(POtion2, 575, 575, 0);
 								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-									"2.An 'One Thousand Dollar' Paper Banknote");
+									"2.Shielding  Potion");
 								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-									"Just a one thousand NT dollar.");
+									"Armour + 4 (in battle)");
 								if (check_purchase == true) {
 									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
 									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
 									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-										"Do you really want to buy: An 'One Thousand Dollar' Paper Banknote * 1");
+										"Do you really want to buy: Shielding  Potion * 1");
 									if (check_purchase_final == true) {
-										if (money >= 1000) {
-											amount_of_An_One_Thousand_Dollar_Paper_Banknote++;//inventory + 1
-											money -= 1000;
+										if (money >= 100) {
+											potion3.valid++;//inventory + 1
+											money -= 100;
 											menu_number_chose = 0;
 											check_purchase = false;
 											check_purchase_final = false;
-											printf("amount_of_An_One_Thousand_Dollar_Paper_Banknote + 1\n");
+											printf("potion3.valid++\n");
 										}
 										else {
 											money_shortage = true;
@@ -2341,24 +2080,24 @@ int game_run() {
 								}
 							}
 							else if (menu_number_chose == 5) {
-								al_draw_bitmap(UnderArmor, 600, 575, 0);
+								al_draw_bitmap(POtion3, 600, 575, 0);
 								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-									"5.UnderArmor");
+									"5.Debuff Potion");
 								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-									"?????????????");
+									"Enemy's vulnerable + 4 (in battle)");
 								if (check_purchase == true) {
 									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
 									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
 									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-										"Do you really want to buy: UnderArmor * 1");
+										"Do you really want to buy: Debuff Potion * 1");
 									if (check_purchase_final == true) {
-										if (money >= 400) {
-											amount_of_UnderArmor++;//inventory + 1
-											money -= 400;
+										if (money >= 300) {
+											potion1.valid++;//inventory + 1
+											money -= 300;
 											menu_number_chose = 0;
 											check_purchase = false;
 											check_purchase_final = false;
-											printf("amount_of_UnderArmor + 1\n");
+											printf("potion1.valid++\n");
 										}
 										else {
 											money_shortage = true;
@@ -2371,24 +2110,24 @@ int game_run() {
 								}
 							}
 							else if (menu_number_chose == 6) {
-								al_draw_bitmap(Maples_Shield, 600, 575, 0);
+								al_draw_bitmap(POtion4, 600, 575, 0);
 								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 600, ALLEGRO_ALIGN_LEFT,
-									"6.Maple's Shield");
+									"6.Harming Potion");
 								al_draw_text(menu_font, al_map_rgb(255, 255, 255), 75, 700, ALLEGRO_ALIGN_LEFT,
-									"Maple is cute~~~");
+									"Enemy's HP - 100");
 								if (check_purchase == true) {
 									al_draw_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(255, 255, 255), 5);
 									al_draw_filled_rectangle(WIDTH / 2 - 375, HEIGHT / 2 + 50, WIDTH / 2 + 375, HEIGHT / 2 - 50, al_map_rgb(178, 34, 34));
 									al_draw_text(menu_font, al_map_rgb(125, 255, 125), WIDTH / 2, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE,
-										"Do you really want to buy: Maple's Shield * 1");
+										"Do you really want to buy: Harming Potion * 1");
 									if (check_purchase_final == true) {
-										if (money >= 100000) {
-											amount_of_Maples_Shield++;//inventory + 1
-											money -= 100000;
+										if (money >= 400) {
+											potion2.valid++;//inventory + 1
+											money -= 400;
 											menu_number_chose = 0;
 											check_purchase = false;
 											check_purchase_final = false;
-											printf("amount_of_Maples_Shield + 1\n");
+											printf("potion2.valid++\n");
 										}
 										else {
 											money_shortage = true;
@@ -2433,13 +2172,11 @@ int game_run() {
 								}
 
 							}
-
-							//al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
 							al_flip_display();
 							error = process_event();
 						}//choose			
 						while (message_number == 2) {
-							//if (z) heal and reduce money    (remember to record)
+							//if (z) heal and reduce money 
 							al_draw_bitmap(grocerystore_bg, 0, 0, 0);
 							al_draw_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(255, 255, 255), 5);
 							al_draw_filled_rectangle(WIDTH / 2 - 350, HEIGHT / 2 + 70, WIDTH / 2 + 350, HEIGHT / 2 + 320, al_map_rgb(61, 89, 171));
@@ -2456,11 +2193,7 @@ int game_run() {
 					}
 				}
 			}
-			//if (1)
 			al_draw_bitmap(character1.image_path, character1.x, character1.y, 0);
-
-			//if (dir) al_draw_bitmap(character2.image_path, character2.x, character2.y, 0);
-			//else al_draw_bitmap(character3.image_path, character2.x, character2.y, 0);
 
 			al_flip_display();
 			al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -2474,12 +2207,7 @@ int game_run() {
 	//battle
 	if (judge_next_window == 2) {
 		while (window == 1) {
-			//printf("in game_run window judge_next_window == 2\n");
-
-
-
-
-
+	
 			// draw the battlefield and indicate the turn
 			al_draw_bitmap(Board, 0, 0, 0);
 			if (stage == 4) {
@@ -2534,7 +2262,6 @@ int game_run() {
 					ALLEGRO_ALIGN_CENTER, "Attack:%d", louse.atk);
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
 					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", louse.interval);
-
 			}
 
 
@@ -2560,7 +2287,6 @@ int game_run() {
 					ALLEGRO_ALIGN_CENTER, "Attack:%d", chosen.atk);
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
 					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", chosen.interval);
-
 			}
 			if (stage == 4 && boss.hp > 0) {
 				al_draw_bitmap(Boss, 390, 100, 0);
@@ -2572,9 +2298,7 @@ int game_run() {
 					ALLEGRO_ALIGN_CENTER, "Attack:%d", boss.atk);
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 650, 200,
 					ALLEGRO_ALIGN_CENTER, "Attack Inteval:%d", boss.interval);
-
 			}
-
 
 
 			// draw the hero and the indicate the data of hero
@@ -2591,6 +2315,21 @@ int game_run() {
 				al_draw_text(font, al_map_rgb(255, 255, 255), 815, 300,
 					ALLEGRO_ALIGN_CENTER, "You died.");
 				printf("You died.\n");
+				
+				int i = 1;
+				al_stop_sample(&Dungeonmusic_id);
+				al_play_sample(defeated, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+				while (i) {
+					al_draw_bitmap(defeatedpicture, 0, 0, 0);
+					al_flip_display();
+				}
+				
+				card1.valid = 0;
+				card2.valid = 0;
+				card3.valid = 0;
+				card4.valid = 0;
+				card5.valid = 0;
+				
 			}
 			if (card1.valid != 0) {
 				if (card1.index == 1)al_draw_bitmap(Bash, 0, 430, 0);
@@ -2639,7 +2378,6 @@ int game_run() {
 
 			}
 
-			//printf("al_flip_display in  judge_next_window == 2\n");
 			al_flip_display();
 			error = process_event();
 			if (judge_next_window != 2)
@@ -2662,18 +2400,6 @@ int game_run() {
 }
 
 
-
-void game_destroy() {
-	// Make sure you destroy all things
-	al_destroy_event_queue(event_queue);
-	al_destroy_display(display);
-	al_destroy_timer(timer);
-	al_destroy_timer(timer2);
-	al_destroy_bitmap(image);
-
-	//al_stop_sample(song);
-	//al_destroy_sample(song);
-}
 
 bool check_boundary(int x, int y)
 {
@@ -2831,6 +2557,23 @@ bool check_boundary(int x, int y)
 		return true;
 }
 
+int check_mana() {
+	if (card1.valid && card1.cost == 1)
+		return 1;
+	else if (card2.valid && card2.cost == 1)
+		return 1;
+	else if (card3.valid && card3.cost == 1)
+		return 1;
+	else if (card4.valid && card4.cost == 1)
+		return 1;
+	else if (card5.valid && card5.cost == 1)
+		return 1;
+	else
+		return 0;
+}
+
+
+
 void game_abort(const char* format, ...) {
 	va_list arg;
 	va_start(arg, format);
@@ -2868,24 +2611,11 @@ void game_vlog(const char* format, va_list arg) {
 #endif
 }
 
-
-
-
-
-
-
-
-
-void menu_run() {//顯示 血量、金錢、裝備、物品
-
-}
-
-
-
-bool pnt_in_rect(int px, int py, int x, int y, int w, int h)
-{
-	if (px >= x && px <= x + w && py >= y && py <= y + h)
-		return true;
-	else
-		return false;
+void game_destroy() {
+	// Make sure you destroy all things
+	al_destroy_event_queue(event_queue);
+	al_destroy_display(display);
+	al_destroy_timer(timer);
+	al_destroy_timer(timer2);
+	al_destroy_bitmap(image);
 }
