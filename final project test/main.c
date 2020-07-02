@@ -40,6 +40,7 @@ ALLEGRO_BITMAP *POtion1 = NULL;
 ALLEGRO_BITMAP *POtion2 = NULL;
 ALLEGRO_BITMAP *POtion3 = NULL;
 ALLEGRO_BITMAP *POtion4 = NULL;
+ALLEGRO_BITMAP *Teach = NULL;
 
 //keyboard
 ALLEGRO_KEYBOARD_STATE keyState;
@@ -181,7 +182,8 @@ card card3;
 card card4;
 card card5;
 
-//set the monsters  // hp;atk;interval;money;
+//set the monsters  
+// hp;atk;interval;money;
 mon  louse;           
 mon  cultist;
 mon  chosen;
@@ -412,6 +414,9 @@ void load_data() {
 	defeatedpicture = al_load_bitmap("defeatedpicture.png");
 	if (!defeatedpicture)
 		game_abort("failed to load picture: defeatedpicture");
+	Teach = al_load_bitmap("teach.png");
+	if (!Teach)
+		game_abort("failed to load picture: teach");
 
 	//font
 	menu_font = al_load_ttf_font("NotoSansCJKtc-Medium.otf", 20, 0);
@@ -714,6 +719,10 @@ void on_key_down(int keycode) {
 	}
 	if (window == 1 && judge_next_window == 0) {
 		if (keycode == ALLEGRO_KEY_ENTER)
+			window = 2;
+	}
+	if (window == 2 && judge_next_window == 0) {
+		if (keycode == ALLEGRO_KEY_ENTER)
 			judge_next_window = 1;
 	}
 	if (judge_next_window == 1) {
@@ -887,6 +896,7 @@ void on_key_down(int keycode) {
 			if (stage == 1)louse.hp = louse.hp - 100;
 			if (louse.hp <= 0) {
 				man.money = man.money + louse.money;
+				money = man.money;
 				judge_next_window = 3;
 				window = 0;
 				character1.x = 425;
@@ -896,6 +906,7 @@ void on_key_down(int keycode) {
 			if (stage == 2)cultist.hp = cultist.hp - 100;
 			if (cultist.hp <= 0) {
 				man.money = man.money + cultist.money;
+				money = man.money;
 				judge_next_window = 3;
 				window = 0;
 				character1.x = 425;
@@ -905,6 +916,7 @@ void on_key_down(int keycode) {
 			if (stage == 3)chosen.hp = chosen.hp - 100;
 			if (chosen.hp <= 0) {
 				man.money = man.money + chosen.money;
+				money = man.money;
 				judge_next_window = 3;
 				window = 0;
 				character1.x = 425;
@@ -914,6 +926,7 @@ void on_key_down(int keycode) {
 			if (stage == 4)boss.hp = boss.hp - 100;
 			if (boss.hp <= 0) {
 				man.money = man.money + boss.money;
+				money = man.money;
 				judge_next_window = 3;
 				window = 1;
 				resetmonster();
@@ -942,6 +955,7 @@ void on_key_down(int keycode) {
 					louse.hp = louse.hp - man.atk - man.buff*man.atk;
 					if (louse.hp <= 0) {
 						man.money = man.money + louse.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -971,6 +985,7 @@ void on_key_down(int keycode) {
 					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
 					if (cultist.hp <= 0) {
 						man.money = man.money + cultist.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1000,6 +1015,7 @@ void on_key_down(int keycode) {
 					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
 					if (chosen.hp <= 0) {
 						man.money = man.money + chosen.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1029,6 +1045,7 @@ void on_key_down(int keycode) {
 					boss.hp = boss.hp - man.atk - man.buff*man.atk;
 					if (boss.hp <= 0) {
 						man.money = man.money + boss.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 1;
 						resetmonster();
@@ -1073,6 +1090,7 @@ void on_key_down(int keycode) {
 					louse.hp = louse.hp - man.atk - man.buff*man.atk;
 					if (louse.hp <= 0) {
 						man.money = man.money + louse.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1102,6 +1120,7 @@ void on_key_down(int keycode) {
 					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
 					if (cultist.hp <= 0) {
 						man.money = man.money + cultist.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1131,6 +1150,7 @@ void on_key_down(int keycode) {
 					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
 					if (chosen.hp <= 0) {
 						man.money = man.money + chosen.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1160,6 +1180,7 @@ void on_key_down(int keycode) {
 					boss.hp = boss.hp - man.atk - man.buff*man.atk;
 					if (boss.hp <= 0) {
 						man.money = man.money + boss.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 1;
 						resetmonster();
@@ -1204,6 +1225,7 @@ void on_key_down(int keycode) {
 					louse.hp = louse.hp - man.atk - man.buff*man.atk;
 					if (louse.hp <= 0) {
 						man.money = man.money + louse.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1234,6 +1256,7 @@ void on_key_down(int keycode) {
 					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
 					if (cultist.hp <= 0) {
 						man.money = man.money + cultist.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1263,6 +1286,7 @@ void on_key_down(int keycode) {
 					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
 					if (chosen.hp <= 0) {
 						man.money = man.money + chosen.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1292,6 +1316,7 @@ void on_key_down(int keycode) {
 					boss.hp = boss.hp - man.atk - man.buff*man.atk;
 					if (boss.hp <= 0) {
 						man.money = man.money + boss.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 1;
 						resetmonster();
@@ -1336,6 +1361,7 @@ void on_key_down(int keycode) {
 					louse.hp = louse.hp - man.atk - man.buff*man.atk;
 					if (louse.hp <= 0) {
 						man.money = man.money + louse.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1365,6 +1391,7 @@ void on_key_down(int keycode) {
 					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
 					if (cultist.hp <= 0) {
 						man.money = man.money + cultist.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1394,6 +1421,7 @@ void on_key_down(int keycode) {
 					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
 					if (chosen.hp <= 0) {
 						man.money = man.money + chosen.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1423,6 +1451,7 @@ void on_key_down(int keycode) {
 					boss.hp = boss.hp - man.atk - man.buff*man.atk;
 					if (boss.hp <= 0) {
 						man.money = man.money + boss.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 1;
 						resetmonster();
@@ -1465,6 +1494,7 @@ void on_key_down(int keycode) {
 					louse.hp = louse.hp - man.atk - man.buff*man.atk;
 					if (louse.hp <= 0) {
 						man.money = man.money + louse.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1494,6 +1524,7 @@ void on_key_down(int keycode) {
 					cultist.hp = cultist.hp - man.atk - man.buff*man.atk;
 					if (cultist.hp <= 0) {
 						man.money = man.money + cultist.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1523,6 +1554,7 @@ void on_key_down(int keycode) {
 					chosen.hp = chosen.hp - man.atk - man.buff*man.atk;
 					if (chosen.hp <= 0) {
 						man.money = man.money + chosen.money;
+						money = man.money;
 						judge_next_window = 3;
 						window = 0;
 						character1.x = 425;
@@ -1552,6 +1584,7 @@ void on_key_down(int keycode) {
 					boss.hp = boss.hp - man.atk - man.buff*man.atk;
 					if (boss.hp <= 0) {
 						man.money = man.money + boss.money;
+						money = man.money;
 						judge_next_window = 3;
 						resetmonster();
 						window = 1;
@@ -1621,6 +1654,7 @@ void on_key_down(int keycode) {
 
 void event_window() {
 
+	
 	if (judge_next_window == 1) {
 		if (window == 2) {//in the village
 			if (character1.x == 300 && character1.y == HEIGHT - 150 - 75) {//walk into INN
@@ -1709,6 +1743,8 @@ void event_window() {
 						character1.y = HEIGHT - 150;
 						judge_next_window = 1;
 						window = 2;
+						al_stop_sample(&Dungeonmusic_id);
+						
 					}
 				}		
 			}
@@ -1719,10 +1755,19 @@ void event_window() {
 int game_run() {
 	int error = 0;
 	// First window(title)
+	
 	if (window == 1) {
 		if (!al_is_event_queue_empty(event_queue)) {
 			error = process_event();
-			if (judge_next_window == 1) {
+			if (window == 2) {
+				if (judge_next_window == 0 && window == 2) {
+					al_draw_bitmap(Teach, 0, -18, 0);
+					al_flip_display();
+					error = process_event();
+				}
+			}
+
+			else if (judge_next_window == 1) {
 				window = 2;
 				al_stop_sample(&title_bgm_id);
 				al_play_sample(village_bgm, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, &village_bgm_id);
@@ -1747,6 +1792,9 @@ int game_run() {
 				al_start_timer(timer3);
 			}
 		}
+	}
+	else if (window == 2) {
+
 	}
 	// Second window(Main Game)
 	if (judge_next_window == 1) {
@@ -2229,19 +2277,19 @@ int game_run() {
 			
 			//load the potion
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 150, 850,
-				ALLEGRO_ALIGN_CENTER, "potion1:(%d/1)", potion1.valid);
+				ALLEGRO_ALIGN_CENTER, "potion1:(%d/6)", potion1.valid);
 			al_draw_text(font, al_map_rgb(255, 255, 255), 150, 825,
 				ALLEGRO_ALIGN_CENTER, "Vulnerable+4");
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 350, 850,
-				ALLEGRO_ALIGN_CENTER, "potion2:(%d/1)", potion2.valid);
+				ALLEGRO_ALIGN_CENTER, "potion2:(%d/6)", potion2.valid);
 			al_draw_text(font, al_map_rgb(255, 255, 255), 350, 825,
 				ALLEGRO_ALIGN_CENTER, "Damage +100pt");
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 550, 850,
-				ALLEGRO_ALIGN_CENTER, "potion3:(%d/1)", potion3.valid);
+				ALLEGRO_ALIGN_CENTER, "potion3:(%d/6)", potion3.valid);
 			al_draw_text(font, al_map_rgb(255, 255, 255), 550, 825,
 				ALLEGRO_ALIGN_CENTER, "Armour+20");
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 750, 850,
-				ALLEGRO_ALIGN_CENTER, "potion4:(%d/1)", potion4.valid);
+				ALLEGRO_ALIGN_CENTER, "potion4:(%d/6)", potion4.valid);
 			al_draw_text(font, al_map_rgb(255, 255, 255), 750, 825,
 				ALLEGRO_ALIGN_CENTER, "Hp+100");
 			al_draw_bitmap(Potion1, 115, 750, 0);
@@ -2493,6 +2541,8 @@ bool check_boundary(int x, int y)
 				return true;
 			else if (x == 425 && y == 175)
 				return true;
+			else if (x == 500 && y < 200)
+				return false;
 			else
 				return false;
 		}
